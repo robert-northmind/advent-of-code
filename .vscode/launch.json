@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - Day_1",
+      "request": "launch",
+      "mainClass": "Year2019.Day01.Day_1",
+      "projectName": "AdventOfCode"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - Day_1",
+      "request": "launch",
+      "mainClass": "Day_1",
+      "projectName": "AdventOfCode"
+    }
+  ]
+}
