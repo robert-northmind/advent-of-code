@@ -3,10 +3,10 @@ package Utility;
 import java.io.*;
 import java.util.*;
 
-public class FileReader {
+public class MyFileReader {
     private BufferedReader bufferedReader;
 
-    public FileReader(String path) {
+    public MyFileReader(String path) {
         try {
             FileInputStream fstream = new FileInputStream(path);
             DataInputStream in = new DataInputStream(fstream);

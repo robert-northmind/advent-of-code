@@ -1,6 +1,6 @@
 package Year2019.Day01;
 
-import java.io.*;
+import Utility.*;
 import java.util.*;
 
 class Day_1 {
@@ -15,7 +15,7 @@ class Day_1 {
 
     int sumFuel = 0;
     for (String path : filePaths) {
-      FileReader fileReader = new FileReader(path);
+      MyFileReader fileReader = new MyFileReader(path);
       ArrayList<String> lines = fileReader.getInputLines();
       // System.out.println("lines: " + lines);
       for (String massStr : lines) {
@@ -34,33 +34,5 @@ class FuelCalculator {
       reqFuel += Math.max(0, FuelCalculator.fuelAmountForMass(reqFuel));
     }
     return reqFuel;
-  }
-}
-
-class FileReader {
-  private BufferedReader bufferedReader;
-
-  public FileReader(String path) {
-    try {
-      FileInputStream fstream = new FileInputStream(path);
-      DataInputStream in = new DataInputStream(fstream);
-      this.bufferedReader = new BufferedReader(new InputStreamReader(in));
-    } catch (FileNotFoundException error) {
-      System.err.println("Error: " + error.getMessage());
-    }
-  }
-
-  public ArrayList<String> getInputLines() {
-    ArrayList<String> lines = new ArrayList<String>();
-
-    String line;
-    try {
-      while ((line = bufferedReader.readLine()) != null) {
-        lines.add(line);
-      }
-    } catch (IOException error) {
-      System.err.println("Error: " + error.getMessage());
-    }
-    return lines;
   }
 }
