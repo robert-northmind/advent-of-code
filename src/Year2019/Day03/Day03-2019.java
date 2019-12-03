@@ -5,11 +5,6 @@ import java.util.*;
 
 class Day_3 {
   public static void main(String[] args) {
-    // LineSeg l1 = new LineSeg(new Point(8, 0), new Point(8, 5));
-    // LineSeg l2 = new LineSeg(new Point(0, 7), new Point(6, 7));
-    // Point inter = l1.getIntersection(l2);
-    // System.out.println("inter" + inter);
-
     ArrayList<String> filePaths = new ArrayList<String>();
     filePaths.add("src/Year2019/Day03/Input/test_1.txt");
     filePaths.add("src/Year2019/Day03/Input/test_2.txt");
@@ -56,12 +51,7 @@ class WireInputMachine {
       for (LineSeg lineSegOther : lineSegmentsOther) {
         Point intersection = lineSeg.getIntersection(lineSegOther);
         if (intersection != null && intersection.x != 0 && intersection.y != 0) {
-          // System.out.println("LineSeg: p1: " + lineSeg.p1 + " p2: " + lineSeg.p2);
-          // System.out.println("LineSegOther: p1: " + lineSegOther.p1 + " p2: " +
-          // lineSegOther.p2);
           intersections.add(intersection);
-          // System.out.println("intersectP: (" + intersection.x + " ," + intersection.y +
-          // ")");
         }
       }
     }
@@ -115,11 +105,7 @@ class LineSeg {
   }
 
   public Point getIntersection(LineSeg lineSegOther) {
-    // Line l1 = GeometryMachine.getLine(this.p1, this.p2);
-    // Line l2 = GeometryMachine.getLine(lineSegOther.p1, lineSegOther.p2);
-    // Point intersect = GeometryMachine.getIntersection(l1, l2);
-
-    Point intersect = GeometryMachine.getIntersection2(this, lineSegOther);
+    Point intersect = GeometryMachine.getIntersection(this, lineSegOther);
 
     if (intersect == null) {
       return null;
@@ -129,10 +115,6 @@ class LineSeg {
         && intersect.y <= this.p2.y;
     Boolean twoIsValid = intersect.x >= lineSegOther.p1.x && intersect.x <= lineSegOther.p2.x
         && intersect.y >= lineSegOther.p1.y && intersect.y <= lineSegOther.p2.y;
-
-    if (oneIsValid && twoIsValid) {
-      // System.out.println("l1: " + this + " l2: " + lineSegOther);
-    }
     return (oneIsValid && twoIsValid) ? intersect : null;
   }
 
@@ -142,27 +124,27 @@ class LineSeg {
 }
 
 class GeometryMachine {
-  public static Line getLine(Point p1, Point p2) {
-    int a = p1.y - p2.y;
-    int b = p2.x - p1.x;
-    int c = p1.x * p2.y - p2.x * p1.y;
-    return new Line(a, b, c);
-  }
+  // public static Line getLine(Point p1, Point p2) {
+  // int a = p1.y - p2.y;
+  // int b = p2.x - p1.x;
+  // int c = p1.x * p2.y - p2.x * p1.y;
+  // return new Line(a, b, c);
+  // }
 
-  public static Point getIntersection(Line l1, Line l2) {
-    int d = l1.b * l2.a - l1.a * l2.b;
-    int dx = l1.c * l2.b - l1.b * l2.c;
-    int dy = l1.a * l2.c - l1.c * l2.a;
-    if (d != 0) {
-      int x = dx / d;
-      int y = dy / d;
-      return new Point(x, y);
-    } else {
-      return null;
-    }
-  }
+  // public static Point getIntersection(Line l1, Line l2) {
+  // int d = l1.b * l2.a - l1.a * l2.b;
+  // int dx = l1.c * l2.b - l1.b * l2.c;
+  // int dy = l1.a * l2.c - l1.c * l2.a;
+  // if (d != 0) {
+  // int x = dx / d;
+  // int y = dy / d;
+  // return new Point(x, y);
+  // } else {
+  // return null;
+  // }
+  // }
 
-  public static Point getIntersection2(LineSeg l1, LineSeg l2) {
+  public static Point getIntersection(LineSeg l1, LineSeg l2) {
     int x1 = l1.p1.x;
     int x2 = l1.p2.x;
     int x3 = l2.p1.x;
@@ -201,14 +183,14 @@ class Point {
   }
 }
 
-class Line {
-  public int a;
-  public int b;
-  public int c;
+// class Line {
+// public int a;
+// public int b;
+// public int c;
 
-  public Line(int a, int b, int c) {
-    this.a = a;
-    this.b = b;
-    this.c = c;
-  }
-}
+// public Line(int a, int b, int c) {
+// this.a = a;
+// this.b = b;
+// this.c = c;
+// }
+// }
