@@ -18,16 +18,18 @@ class Day_3 {
       WireInputMachine wm1 = new WireInputMachine(lines.get(0));
       WireInputMachine wm2 = new WireInputMachine(lines.get(1));
 
-      ArrayList<Point> intersections = wm1.getIntersection(wm2.lineSegments);
+      ArrayList<Intersection> intersections = wm1.getIntersection(wm2.lineSegments);
       int minDist = shortestDist(intersections);
       System.out.println("minDist: " + minDist);
     }
   }
 
-  public static int shortestDist(ArrayList<Point> intersections) {
+  public static int shortestDist(ArrayList<Intersection> intersections) {
     int minDist = Integer.MAX_VALUE;
-    for (Point point : intersections) {
-      int pointDist = Math.abs(point.x) + Math.abs(point.y);
+    for (Intersection intersection : intersections) {
+      // int pointDist = Math.abs(intersection.point.x) +
+      // Math.abs(intersection.point.y);
+      int pointDist = intersection.needSteps;
       if (pointDist < minDist) {
         minDist = pointDist;
       }
@@ -45,12 +47,12 @@ class WireInputMachine {
 
   }
 
-  public ArrayList<Point> getIntersection(ArrayList<LineSeg> lineSegmentsOther) {
-    ArrayList<Point> intersections = new ArrayList<Point>();
+  public ArrayList<Intersection> getIntersection(ArrayList<LineSeg> lineSegmentsOther) {
+    ArrayList<Intersection> intersections = new ArrayList<Intersection>();
     for (LineSeg lineSeg : lineSegments) {
       for (LineSeg lineSegOther : lineSegmentsOther) {
-        Point intersection = lineSeg.getIntersection(lineSegOther);
-        if (intersection != null && intersection.x != 0 && intersection.y != 0) {
+        Intersection intersection = lineSeg.getIntersection(lineSegOther);
+        if (intersection != null && intersection.point.x != 0 && intersection.point.y != 0) {
           intersections.add(intersection);
         }
       }
@@ -62,11 +64,14 @@ class WireInputMachine {
     Point currPoint = new Point(0, 0);
 
     String[] instructArray = input.split(",");
+    int coveredSteps = 0;
+
     for (String instruction : instructArray) {
       Character opChar = instruction.charAt(0);
       int nbrSteps = Integer.parseInt(instruction.substring(1));
       Point nextPoint = getNextPoint(opChar, nbrSteps, currPoint);
 
+      Point finalFirstNode = currPoint;
       Point finalNextPoint = nextPoint;
       if (nextPoint.x < currPoint.x || nextPoint.y < currPoint.y) {
         Point tmpPoint = nextPoint;
@@ -74,9 +79,10 @@ class WireInputMachine {
         currPoint = tmpPoint;
       }
 
-      LineSeg lineSeg = new LineSeg(currPoint, nextPoint);
+      LineSeg lineSeg = new LineSeg(currPoint, nextPoint, finalFirstNode, coveredSteps);
       lineSegments.add(lineSeg);
       currPoint = finalNextPoint;
+      coveredSteps += nbrSteps;
     }
   }
 
@@ -95,26 +101,63 @@ class WireInputMachine {
   }
 }
 
+class Intersection {
+  public Point point;
+  public int needSteps;
+
+  public Intersection(Point point, int neededSted) {
+    this.point = point;
+    this.needSteps = neededSted;
+  }
+
+  public String toString() {
+    return "Point: " + this.point + " dist: " + this.needSteps;
+  }
+}
+
 class LineSeg {
   public Point p1;
   public Point p2;
+  public Point firstPoint;
+  public int coveredSteps;
 
-  public LineSeg(Point p1, Point p2) {
+  public LineSeg(Point p1, Point p2, Point firstPoint, int coveredSteps) {
     this.p1 = p1;
     this.p2 = p2;
+    this.firstPoint = firstPoint;
+    this.coveredSteps = coveredSteps;
   }
 
-  public Point getIntersection(LineSeg lineSegOther) {
-    Point intersect = GeometryMachine.getIntersection(this, lineSegOther);
+  public Intersection getIntersection(LineSeg lineSegOther) {
+    Point intersectPoint = GeometryMachine.getIntersection(this, lineSegOther);
 
-    if (intersect == null) {
+    if (intersectPoint == null) {
       return null;
     }
 
-    Boolean oneIsValid = intersect.x >= this.p1.x && intersect.x <= this.p2.x && intersect.y >= this.p1.y
-        && intersect.y <= this.p2.y;
-    Boolean twoIsValid = intersect.x >= lineSegOther.p1.x && intersect.x <= lineSegOther.p2.x
-        && intersect.y >= lineSegOther.p1.y && intersect.y <= lineSegOther.p2.y;
+    Boolean oneIsValid = intersectPoint.x >= this.p1.x && intersectPoint.x <= this.p2.x && intersectPoint.y >= this.p1.y
+        && intersectPoint.y <= this.p2.y;
+    Boolean twoIsValid = intersectPoint.x >= lineSegOther.p1.x && intersectPoint.x <= lineSegOther.p2.x
+        && intersectPoint.y >= lineSegOther.p1.y && intersectPoint.y <= lineSegOther.p2.y;
+
+    int dist1 = this.coveredSteps;
+    if (intersectPoint.x == this.firstPoint.x && intersectPoint.y == this.firstPoint.y) {
+      dist1 = this.coveredSteps;
+    } else {
+      dist1 += Math.max(Math.abs(intersectPoint.x - this.firstPoint.x), Math.abs(intersectPoint.y - this.firstPoint.y));
+    }
+
+    int dist2 = lineSegOther.coveredSteps;
+    if (intersectPoint.x == lineSegOther.firstPoint.x && intersectPoint.y == lineSegOther.firstPoint.y) {
+      dist2 = lineSegOther.coveredSteps;
+    } else {
+      dist2 += Math.max(Math.abs(intersectPoint.x - lineSegOther.firstPoint.x),
+          Math.abs(intersectPoint.y - lineSegOther.firstPoint.y));
+    }
+
+    // int minNeededSteps = Math.min(dist1, dist2);
+
+    Intersection intersect = new Intersection(intersectPoint, dist1 + dist2);
     return (oneIsValid && twoIsValid) ? intersect : null;
   }
 
