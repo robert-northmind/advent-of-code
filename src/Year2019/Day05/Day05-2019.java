@@ -6,6 +6,7 @@ import java.util.*;
 class Day_5 {
   public static void main(String[] args) {
     ArrayList<String> filePaths = new ArrayList<String>();
+    // filePaths.add("src/Year2019/Day05/Input/test_1.txt");
     filePaths.add("src/Year2019/Day05/Input/full_input.txt");
 
     for (String path : filePaths) {
@@ -13,7 +14,7 @@ class Day_5 {
       MyFileReader fileReader = new MyFileReader(path);
       ArrayList<String> lines = fileReader.getInputLines();
       String instructions = lines.get(0);
-      IntMachine intMachine = new IntMachine(1, instructions);
+      IntMachine intMachine = new IntMachine(5, instructions);
       intMachine.startMachine();
     }
   }
@@ -61,17 +62,42 @@ class IntMachine {
       System.out.println("In: " + this.machineInput + " at mem index: " + this.currentMemPointer);
 
     } else if (instruction.opCode == OpCode.Output) {
-      int output = this.memory[instruction.outputIndex];
+      int output = instruction.outputIndex;
       System.out.println("Out: " + output + " at mem index: " + this.currentMemPointer);
 
     } else if (instruction.opCode == OpCode.Terminate) {
       System.out.println("Terminate program!! at mem index: " + this.currentMemPointer);
+
+    } else if (instruction.opCode == OpCode.JumpIfTrue) {
+      int nextMemPointer = instruction.outputIndex;
+      this.currentMemPointer = nextMemPointer;
+
+    } else if (instruction.opCode == OpCode.JumpIfFalse) {
+      int nextMemPointer = instruction.outputIndex;
+      this.currentMemPointer = nextMemPointer;
+
+    } else if (instruction.opCode == OpCode.LessThan) {
+      int valueToStore = instruction.value1;
+      int storeIndex = instruction.outputIndex;
+
+      this.memory[storeIndex] = valueToStore;
+
+    } else if (instruction.opCode == OpCode.Equals) {
+      int valueToStore = instruction.value1;
+      int storeIndex = instruction.outputIndex;
+
+      this.memory[storeIndex] = valueToStore;
+
     }
 
     this.currentMemPointer += instruction.instructionSize;
   }
 
   Instruction getNextInstruction() {
+    if (this.currentMemPointer >= this.memory.length) {
+      return null;
+    }
+
     int instructionStartCode = this.memory[this.currentMemPointer];
 
     int code = instructionStartCode % 100;
@@ -101,7 +127,78 @@ class IntMachine {
       instruction = new Instruction(OpCode.Input, 0, 0, output, 2);
     } else if (code == 4) {
       int input = getParameterValue(1);
+      ParameterMode value1Mode = IntMachine.getParamMode(instructionStartCode, 1);
+      if (value1Mode == ParameterMode.PositionMode) {
+        input = this.memory[input];
+      }
+
       instruction = new Instruction(OpCode.Output, 0, 0, input, 2);
+    } else if (code == 5) {
+      int doActionInt = getParameterValue(1);
+      ParameterMode value1Mode = IntMachine.getParamMode(instructionStartCode, 1);
+      if (value1Mode == ParameterMode.PositionMode) {
+        doActionInt = this.memory[doActionInt];
+      }
+
+      int secondVal = getParameterValue(2);
+      ParameterMode value2Mode = IntMachine.getParamMode(instructionStartCode, 2);
+      if (value2Mode == ParameterMode.PositionMode) {
+        secondVal = this.memory[secondVal];
+      }
+
+      int nextPointerIndex = doActionInt != 0 ? secondVal : this.currentMemPointer;
+      instruction = new Instruction(OpCode.JumpIfTrue, 0, 0, nextPointerIndex, doActionInt != 0 ? 0 : 3);
+
+    } else if (code == 6) {
+      int doActionInt = getParameterValue(1);
+      ParameterMode value1Mode = IntMachine.getParamMode(instructionStartCode, 1);
+      if (value1Mode == ParameterMode.PositionMode) {
+        doActionInt = this.memory[doActionInt];
+      }
+
+      int secondVal = getParameterValue(2);
+      ParameterMode value2Mode = IntMachine.getParamMode(instructionStartCode, 2);
+      if (value2Mode == ParameterMode.PositionMode) {
+        secondVal = this.memory[secondVal];
+      }
+
+      int nextPointerIndex = doActionInt == 0 ? secondVal : this.currentMemPointer;
+      instruction = new Instruction(OpCode.JumpIfFalse, 0, 0, nextPointerIndex, doActionInt == 0 ? 0 : 3);
+
+    } else if (code == 7) {
+      ParameterMode value1Mode = IntMachine.getParamMode(instructionStartCode, 1);
+      ParameterMode value2Mode = IntMachine.getParamMode(instructionStartCode, 2);
+      int compareInt1 = getParameterValue(1);
+      int compareInt2 = getParameterValue(2);
+
+      if (value1Mode == ParameterMode.PositionMode) {
+        compareInt1 = this.memory[compareInt1];
+      }
+      if (value2Mode == ParameterMode.PositionMode) {
+        compareInt2 = this.memory[compareInt2];
+      }
+
+      int resultIndex = getParameterValue(3);
+      int valueToStore = compareInt1 < compareInt2 ? 1 : 0;
+      instruction = new Instruction(OpCode.LessThan, valueToStore, 0, resultIndex, 4);
+
+    } else if (code == 8) {
+      ParameterMode value1Mode = IntMachine.getParamMode(instructionStartCode, 1);
+      ParameterMode value2Mode = IntMachine.getParamMode(instructionStartCode, 2);
+      int compareInt1 = getParameterValue(1);
+      int compareInt2 = getParameterValue(2);
+
+      if (value1Mode == ParameterMode.PositionMode) {
+        compareInt1 = this.memory[compareInt1];
+      }
+      if (value2Mode == ParameterMode.PositionMode) {
+        compareInt2 = this.memory[compareInt2];
+      }
+
+      int resultIndex = getParameterValue(3);
+      int valueToStore = compareInt1 == compareInt2 ? 1 : 0;
+      instruction = new Instruction(OpCode.Equals, valueToStore, 0, resultIndex, 4);
+
     } else if (code == 99) {
       instruction = new Instruction(OpCode.Terminate, 0, 0, 0, 1);
     } else {
@@ -113,7 +210,11 @@ class IntMachine {
   }
 
   int getParameterValue(int parameter) {
-    return this.memory[this.currentMemPointer + parameter];
+    int paramIndex = this.currentMemPointer + parameter;
+    if (paramIndex < this.memory.length) {
+      return this.memory[paramIndex];
+    }
+    return 0;
   }
 
   public static ParameterMode getParamMode(int instructionStartCode, int paramNbr) {
@@ -148,7 +249,7 @@ class Instruction {
 }
 
 enum OpCode {
-  Add, Multiply, Input, Output, Terminate
+  Add, Multiply, Input, Output, Terminate, JumpIfTrue, JumpIfFalse, LessThan, Equals
 }
 
 enum ParameterMode {
