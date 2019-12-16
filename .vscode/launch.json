@@ -2,6 +2,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "CodeLens (Launch) - Day_9",
+      "request": "launch",
+      "mainClass": "Year2019.Day09.Day_9",
+      "projectName": "AdventOfCode"
+    },
+    {
+      "type": "java",
       "name": "CodeLens (Launch) - Day_8",
       "request": "launch",
       "mainClass": "Year2019.Day08.Day_8",
