@@ -123,6 +123,7 @@ class IntMachine {
   Instruction prevInstruction = null;
   Boolean didTerminate = false;
   Boolean waitningForInput = false;
+  HashMap<Integer, Integer> memoryMap = new HashMap<Integer, Integer>();
 
   public IntMachine(int[] machineInput, String instructionStr) {
     for (Integer input : machineInput) {
@@ -131,6 +132,10 @@ class IntMachine {
 
     String[] strArray = instructionStr.split(",");
     this.memory = Arrays.stream(strArray).mapToInt(Integer::parseInt).toArray();
+
+    for (int i = 0; i < this.memory.length; i++) {
+      memoryMap.put(i, this.memory[i]);
+    }
   }
 
   public int startMachine() {
@@ -153,11 +158,11 @@ class IntMachine {
   void performInstruction(Instruction instruction) {
     if (instruction.opCode == OpCode.Add) {
       int result = instruction.value1 + instruction.value2;
-      this.memory[instruction.outputIndex] = result;
+      this.memoryMap.put(instruction.outputIndex, result);
 
     } else if (instruction.opCode == OpCode.Multiply) {
       int result = instruction.value1 * instruction.value2;
-      this.memory[instruction.outputIndex] = result;
+      this.memoryMap.put(instruction.outputIndex, result);
 
     } else if (instruction.opCode == OpCode.Input) {
       if (inputQueue.size() == 0) {
@@ -165,7 +170,8 @@ class IntMachine {
         return;
       }
       int inputVal = this.inputQueue.pop();
-      this.memory[instruction.outputIndex] = inputVal;
+      this.memoryMap.put(instruction.outputIndex, inputVal);
+
       if (Constants.showLogs) {
         System.out.println("In: " + inputVal + " at mem index: " + this.currentMemPointer);
       }
@@ -197,13 +203,13 @@ class IntMachine {
       int valueToStore = instruction.value1;
       int storeIndex = instruction.outputIndex;
 
-      this.memory[storeIndex] = valueToStore;
+      this.memoryMap.put(storeIndex, valueToStore);
 
     } else if (instruction.opCode == OpCode.Equals) {
       int valueToStore = instruction.value1;
       int storeIndex = instruction.outputIndex;
 
-      this.memory[storeIndex] = valueToStore;
+      this.memoryMap.put(storeIndex, valueToStore);
 
     }
 
@@ -211,7 +217,8 @@ class IntMachine {
   }
 
   Instruction getNextInstruction() {
-    if (this.currentMemPointer >= this.memory.length) {
+    Integer currentMemVal = this.memoryMap.get(this.currentMemPointer);
+    if (currentMemVal == null) {
       return null;
     }
 
@@ -219,7 +226,7 @@ class IntMachine {
       return null;
     }
 
-    int instructionStartCode = this.memory[this.currentMemPointer];
+    int instructionStartCode = currentMemVal;
 
     int code = instructionStartCode % 100;
 
@@ -283,13 +290,14 @@ class IntMachine {
     int value = 0;
 
     int paramIndex = this.currentMemPointer + parameter;
-    if (paramIndex < this.memory.length) {
-      value = this.memory[paramIndex];
+    Integer paramVal = this.memoryMap.get(paramIndex);
+    if (paramVal != null) {
+      value = paramVal;
     }
 
     ParameterMode valueMode = IntMachine.getParamMode(instructionStartCode, parameter);
     if (!isOutputParam && valueMode == ParameterMode.PositionMode) {
-      value = this.memory[value];
+      value = this.memoryMap.get(value);
     }
 
     return value;
