@@ -4,13 +4,13 @@ import Utility.*;
 import java.util.*;
 
 class Constants {
-  static Boolean showLogs = false;
+  static Boolean showLogs = true;
 }
 
 class Day_9 {
   public static void main(String[] args) {
     ArrayList<String> filePaths = new ArrayList<String>();
-    filePaths.add("src/Year2019/Day09/Input/test_1.txt");
+    // filePaths.add("src/Year2019/Day09/Input/test_1.txt");
     filePaths.add("src/Year2019/Day09/Input/full_input.txt");
 
     for (String path : filePaths) {
@@ -18,98 +18,10 @@ class Day_9 {
       MyFileReader fileReader = new MyFileReader(path);
       ArrayList<String> lines = fileReader.getInputLines();
       for (String line : lines) {
-        findOptimalOutput(line);
-      }
-    }
-  }
+        long[] input = { 1 };
+        IntMachine intMachine = new IntMachine(input, line);
+        intMachine.startMachine();
 
-  public static void findOptimalOutput(String instructionStr) {
-    // int[] inputOption = { 9, 7, 8, 5, 6 };
-    // int out = getMachineOutput(inputOption, instructionStr);
-    // System.out.println("Final output: " + out + " with Config: " +
-    // Arrays.toString(inputOption));
-
-    ArrayList<ArrayList<Integer>> inputOptions = InputGenerator.getAllCombinations();
-
-    long maxOutput = 0;
-    long[] maxOutConfig = { 0, 0, 0, 0, 0 };
-    for (ArrayList<Integer> intList : inputOptions) {
-      long[] inputOption = new long[5];
-      for (int i = 0; i < intList.size(); i++) {
-        inputOption[i] = intList.get(i);
-      }
-      long out = getMachineOutput(inputOption, instructionStr);
-      if (out > maxOutput) {
-        maxOutput = out;
-        maxOutConfig = inputOption;
-      }
-    }
-
-    System.out.println("Final output: " + maxOutput + " with Config: " + Arrays.toString(maxOutConfig));
-  }
-
-  public static long getMachineOutput(long[] phaseSeqArray, String instructionStr) {
-    IntMachine[] machines = { getIntMachine(phaseSeqArray[0], instructionStr),
-        getIntMachine(phaseSeqArray[1], instructionStr), getIntMachine(phaseSeqArray[2], instructionStr),
-        getIntMachine(phaseSeqArray[3], instructionStr), getIntMachine(phaseSeqArray[4], instructionStr) };
-
-    long output = 0;
-    Boolean didFinish = false;
-    while (!didFinish) {
-      for (int i = 0; i < phaseSeqArray.length; i++) {
-        if (Constants.showLogs) {
-          System.out.println("Running machine: " + i);
-        }
-
-        IntMachine intMachine = machines[i];
-        intMachine.inputQueue.add(output);
-        intMachine.waitningForInput = false;
-        output = intMachine.startMachine();
-
-        if (i == phaseSeqArray.length - 1) {
-          didFinish = intMachine.didTerminate;
-        }
-      }
-    }
-    return output;
-  }
-
-  public static IntMachine getIntMachine(long phaseSeq, String instructionStr) {
-    long[] input = { phaseSeq };
-    return new IntMachine(input, instructionStr);
-  }
-}
-
-class InputGenerator {
-  public static ArrayList<ArrayList<Integer>> getAllCombinations() {
-    ArrayList<Integer> input = new ArrayList<Integer>();
-    ArrayList<ArrayList<Integer>> output = new ArrayList<ArrayList<Integer>>();
-    HashSet<Integer> possibleNbr = new HashSet<Integer>();
-    possibleNbr.add(5);
-    possibleNbr.add(6);
-    possibleNbr.add(7);
-    possibleNbr.add(8);
-    possibleNbr.add(9);
-    getOptions(input, output, possibleNbr);
-    return output;
-  }
-
-  static void getOptions(ArrayList<Integer> input, ArrayList<ArrayList<Integer>> output, HashSet<Integer> possibleNbr) {
-    // Lock first, lock 2nd, lock
-    for (int nbr : possibleNbr) {
-      HashSet<Integer> localPossibleNbr = new HashSet<Integer>(possibleNbr);
-      localPossibleNbr.remove(nbr);
-
-      ArrayList<Integer> localInput = new ArrayList<Integer>(input);
-      localInput.add(nbr);
-
-      if (localInput.size() == 5) {
-        output.add(localInput);
-        return;
-      }
-
-      if (localPossibleNbr.size() > 0) {
-        getOptions(localInput, output, localPossibleNbr);
       }
     }
   }
@@ -124,6 +36,7 @@ class IntMachine {
   Boolean didTerminate = false;
   Boolean waitningForInput = false;
   HashMap<Long, Long> memoryMap = new HashMap<Long, Long>();
+  long relativeBase = 0;
 
   public IntMachine(long[] machineInput, String instructionStr) {
     for (long input : machineInput) {
@@ -176,6 +89,7 @@ class IntMachine {
 
       if (Constants.showLogs) {
         System.out.println("In: " + inputVal + " at mem index: " + this.currentMemPointer);
+        System.out.println("    Storing input at index: " + instruction.outputIndex);
       }
 
     } else if (instruction.opCode == OpCode.Output) {
@@ -183,9 +97,9 @@ class IntMachine {
       if (!didTerminate) {
         lastOutput = output;
       }
-      if (Constants.showLogs) {
-        System.out.println("Out: " + output + " at mem index: " + this.currentMemPointer);
-      }
+      // if (Constants.showLogs) {
+      System.out.println("Out: " + output + " at mem index: " + this.currentMemPointer);
+      // }
 
     } else if (instruction.opCode == OpCode.Terminate) {
       if (Constants.showLogs) {
@@ -213,6 +127,13 @@ class IntMachine {
 
       this.memoryMap.put(storeIndex, valueToStore);
 
+    } else if (instruction.opCode == OpCode.RelativeBase) {
+      long valueToStore = instruction.value1;
+      this.relativeBase += valueToStore;
+
+      if (Constants.showLogs) {
+        System.out.println("Update relativeBase with: " + valueToStore + " new value: " + this.relativeBase);
+      }
     }
 
     this.currentMemPointer += instruction.instructionSize;
@@ -221,7 +142,7 @@ class IntMachine {
   Instruction getNextInstruction() {
     Long currentMemVal = this.memoryMap.get(this.currentMemPointer);
     if (currentMemVal == null) {
-      return null;
+      currentMemVal = 0l;
     }
 
     if (didTerminate) {
@@ -276,6 +197,10 @@ class IntMachine {
       long valueToStore = compareInt1 == compareInt2 ? 1 : 0;
       instruction = new Instruction(OpCode.Equals, valueToStore, 0, resultIndex, 4);
 
+    } else if (code == 9) {
+      long valueToStore = getParameterValue(1, instructionStartCode, false);
+      instruction = new Instruction(OpCode.RelativeBase, valueToStore, 0, 0, 2);
+
     } else if (code == 99) {
       instruction = new Instruction(OpCode.Terminate, 0, 0, 0, 1);
     } else {
@@ -295,11 +220,30 @@ class IntMachine {
     Long paramVal = this.memoryMap.get(paramIndex);
     if (paramVal != null) {
       value = paramVal;
+    } else {
+      value = 0l;
+      this.memoryMap.put(paramIndex, 0l);
     }
 
     ParameterMode valueMode = IntMachine.getParamMode(instructionStartCode, parameter);
-    if (!isOutputParam && valueMode == ParameterMode.PositionMode) {
-      value = this.memoryMap.get(value);
+    if (!isOutputParam) {
+      if (valueMode == ParameterMode.PositionMode) {
+        Long memoryVal2 = this.memoryMap.get(value);
+        if (memoryVal2 == null) {
+          memoryVal2 = 0l;
+        }
+        value = memoryVal2;
+      } else if (valueMode == ParameterMode.RelativeMode) {
+        Long memoryVal2 = this.memoryMap.get(this.relativeBase + value);
+        if (memoryVal2 == null) {
+          memoryVal2 = 0l;
+        }
+        value = memoryVal2;
+      }
+    } else {
+      if (valueMode == ParameterMode.RelativeMode) {
+        value = this.relativeBase + value;
+      }
     }
 
     return value;
@@ -311,6 +255,8 @@ class IntMachine {
       return ParameterMode.PositionMode;
     } else if (code == 1) {
       return ParameterMode.ImmediateMode;
+    } else if (code == 2) {
+      return ParameterMode.RelativeMode;
     } else {
       if (Constants.showLogs) {
         System.out.println("Error!! Unknown ParamCode: " + code);
@@ -339,9 +285,9 @@ class Instruction {
 }
 
 enum OpCode {
-  Add, Multiply, Input, Output, Terminate, JumpIfTrue, JumpIfFalse, LessThan, Equals
+  Add, Multiply, Input, Output, Terminate, JumpIfTrue, JumpIfFalse, LessThan, Equals, RelativeBase
 }
 
 enum ParameterMode {
-  PositionMode, ImmediateMode
+  PositionMode, ImmediateMode, RelativeMode
 }
