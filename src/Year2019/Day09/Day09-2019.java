@@ -18,7 +18,7 @@ class Day_9 {
       MyFileReader fileReader = new MyFileReader(path);
       ArrayList<String> lines = fileReader.getInputLines();
       for (String line : lines) {
-        long[] input = { 1 };
+        long[] input = { 2 };
         IntMachine intMachine = new IntMachine(input, line);
         intMachine.startMachine();
 
