@@ -10,7 +10,7 @@ class Constants {
 class Day_10 {
   public static void main(String[] args) {
     ArrayList<String> filePaths = new ArrayList<String>();
-    filePaths.add("src/Year2019/Day10/Input/test_1.txt");
+    // filePaths.add("src/Year2019/Day10/Input/test_1.txt");
     filePaths.add("src/Year2019/Day10/Input/full_input.txt");
 
     for (String path : filePaths) {
@@ -34,16 +34,15 @@ class Day_10 {
       }
 
       station.getOptimalStationCoord();
-
-      // ArrayList<Coord> coordsToCheck = new ArrayList<Coord>();
-      // coordsToCheck.add(new Coord(1, 2));
-      // station.getOptimalStationCoord(coordsToCheck);
+      station.runLaserUntil(200);
     }
   }
 }
 
 class MonitorStation {
   ArrayList<Coord> asteroids = new ArrayList<Coord>();
+  Coord mainCoord = null;
+  HashMap<Double, ArrayList<LineSeg>> bestAsteroidLines = null;
 
   public MonitorStation() {
   }
@@ -59,49 +58,103 @@ class MonitorStation {
   public void getOptimalStationCoord(ArrayList<Coord> coordsToCheck) {
     int bestAsteroidCount = 0;
     Coord bestAsteroid = null;
-
-    // System.out.println("Tot nbr asteroids: " + asteroids.size());
+    HashMap<Double, ArrayList<LineSeg>> asteroidLines = new HashMap<Double, ArrayList<LineSeg>>();
 
     for (Coord asteroid : coordsToCheck) {
-      ArrayList<LineSeg> lineSegs = new ArrayList<LineSeg>();
-
+      asteroidLines.clear();
       for (Coord otherAsteroid : asteroids) {
         if (asteroid.x == otherAsteroid.x && asteroid.y == otherAsteroid.y) {
           continue;
         }
-        // System.out.println("lineSegs: " + lineSegs.toString() + " otherAsteroid: " +
-        // otherAsteroid);
 
         LineSeg lineSeg = new LineSeg(asteroid, otherAsteroid);
-        Boolean wasAlreadyAdded = false;
-        for (LineSeg otherSeg : lineSegs) {
-          if (otherSeg.isOnSameLineAs(lineSeg) && lineSeg.isUpper == otherSeg.isUpper) {
-            wasAlreadyAdded = true;
-            // System.out.println("Covered Coord: " + otherAsteroid);
-            break;
-          }
-        }
-
-        if (!wasAlreadyAdded) {
+        ArrayList<LineSeg> lineSegs = asteroidLines.get(lineSeg.theta);
+        if (lineSegs != null) {
           lineSegs.add(lineSeg);
+        } else {
+          ArrayList<LineSeg> lineSegsTmp = new ArrayList<LineSeg>();
+          lineSegsTmp.add(lineSeg);
+          asteroidLines.put(lineSeg.theta, lineSegsTmp);
         }
       }
 
-      // System.out.println("Coord: " + asteroid + " count: " + lineSegs.size());
-
-      if (lineSegs.size() > bestAsteroidCount) {
-        bestAsteroidCount = lineSegs.size();
+      if (asteroidLines.size() > bestAsteroidCount) {
+        bestAsteroidCount = asteroidLines.size();
         bestAsteroid = asteroid;
+        bestAsteroidLines = new HashMap<Double, ArrayList<LineSeg>>(asteroidLines);
       }
     }
 
-    if (bestAsteroid != null)
-
-    {
-      System.out.println("Best Count: " + bestAsteroidCount + " for Asteroid: " + bestAsteroid);
+    if (bestAsteroid != null) {
+      this.mainCoord = bestAsteroid;
+      System.out.println("Best Count: " + bestAsteroidCount + " for Asteroid: " + this.mainCoord);
     } else {
       System.out.println("No Asteroid found!");
     }
+  }
+
+  public void runLaserUntil(int count) {
+    ArrayList<Double> keys = getKeys();
+
+    int iteration = 0;
+    ArrayList<LineSeg> asteroidLine = bestAsteroidLines.get(keys.get(0));
+
+    while (iteration < count && asteroidLine != null && asteroidLine.size() > 0) {
+      for (int i = 0; i < keys.size(); i++) {
+        double key = keys.get(i);
+        asteroidLine = bestAsteroidLines.get(key);
+        Coord removedCoord = removeClosest(asteroidLine);
+        System.out.println("Removed: " + removedCoord + " at iteration: " + iteration + " at Key: " + key);
+        iteration += 1;
+        if (iteration > count) {
+          break;
+        }
+      }
+    }
+  }
+
+  private Coord removeClosest(ArrayList<LineSeg> asteroidLine) {
+    double closestDist = Double.MAX_VALUE;
+    int closestIndex = 0;
+    for (int i = 0; i < asteroidLine.size(); i++) {
+      LineSeg seg = asteroidLine.get(i);
+      if (seg.dist < closestDist) {
+        closestDist = seg.dist;
+        closestIndex = i;
+      }
+    }
+    LineSeg removedSeg = asteroidLine.remove(closestIndex);
+    return removedSeg.c2;
+  }
+
+  private ArrayList<Double> getKeys() {
+    ArrayList<Double> finalThetaKeys = new ArrayList<Double>();
+
+    ArrayList<Double> thetaKeys = new ArrayList<Double>();
+    for (Double key : this.bestAsteroidLines.keySet()) {
+      thetaKeys.add(key);
+    }
+    Collections.sort(thetaKeys);
+
+    for (Double key : thetaKeys) {
+      if (key <= 0 && key >= Math.PI / 2.0 * -1) {
+        finalThetaKeys.add(key);
+      }
+    }
+
+    for (Double key : thetaKeys) {
+      if (key > 0 && key <= Math.PI) {
+        finalThetaKeys.add(key);
+      }
+    }
+
+    for (Double key : thetaKeys) {
+      if (key < Math.PI / 2.0 * -1) {
+        finalThetaKeys.add(key);
+      }
+    }
+
+    return finalThetaKeys;
   }
 }
 
@@ -123,6 +176,8 @@ class LineSeg {
   public Coord c1;
   public Coord c2;
   public boolean isUpper = false;
+  public double theta = 0;
+  public double dist = 0;
 
   public LineSeg(Coord c1, Coord c2) {
     this.c1 = c1;
@@ -133,6 +188,13 @@ class LineSeg {
     } else {
       isUpper = c2.y > c1.y;
     }
+
+    // double m = (c2.y - c1.y) / (c2.x - c1.x);
+    this.theta = Math.atan2((c2.y - c1.y), (c2.x - c1.x));
+    // System.out.println(this.theta);
+    double xDist = Math.abs(c2.x - c1.x);
+    double yDist = Math.abs(c2.y - c1.y);
+    this.dist = Math.sqrt(xDist * xDist + yDist * yDist);
   }
 
   public Boolean isOnSameLineAs(LineSeg lineSegOther) {
