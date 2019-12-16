@@ -31,14 +31,14 @@ class Day_9 {
 
     ArrayList<ArrayList<Integer>> inputOptions = InputGenerator.getAllCombinations();
 
-    int maxOutput = 0;
-    int[] maxOutConfig = { 0, 0, 0, 0, 0 };
+    long maxOutput = 0;
+    long[] maxOutConfig = { 0, 0, 0, 0, 0 };
     for (ArrayList<Integer> intList : inputOptions) {
-      int[] inputOption = new int[5];
+      long[] inputOption = new long[5];
       for (int i = 0; i < intList.size(); i++) {
         inputOption[i] = intList.get(i);
       }
-      int out = getMachineOutput(inputOption, instructionStr);
+      long out = getMachineOutput(inputOption, instructionStr);
       if (out > maxOutput) {
         maxOutput = out;
         maxOutConfig = inputOption;
@@ -48,12 +48,12 @@ class Day_9 {
     System.out.println("Final output: " + maxOutput + " with Config: " + Arrays.toString(maxOutConfig));
   }
 
-  public static int getMachineOutput(int[] phaseSeqArray, String instructionStr) {
+  public static long getMachineOutput(long[] phaseSeqArray, String instructionStr) {
     IntMachine[] machines = { getIntMachine(phaseSeqArray[0], instructionStr),
         getIntMachine(phaseSeqArray[1], instructionStr), getIntMachine(phaseSeqArray[2], instructionStr),
         getIntMachine(phaseSeqArray[3], instructionStr), getIntMachine(phaseSeqArray[4], instructionStr) };
 
-    int output = 0;
+    long output = 0;
     Boolean didFinish = false;
     while (!didFinish) {
       for (int i = 0; i < phaseSeqArray.length; i++) {
@@ -74,8 +74,8 @@ class Day_9 {
     return output;
   }
 
-  public static IntMachine getIntMachine(int phaseSeq, String instructionStr) {
-    int[] input = { phaseSeq };
+  public static IntMachine getIntMachine(long phaseSeq, String instructionStr) {
+    long[] input = { phaseSeq };
     return new IntMachine(input, instructionStr);
   }
 }
@@ -116,29 +116,31 @@ class InputGenerator {
 }
 
 class IntMachine {
-  LinkedList<Integer> inputQueue = new LinkedList<Integer>();
-  int lastOutput = 0;
-  int[] memory;
-  int currentMemPointer = 0;
+  LinkedList<Long> inputQueue = new LinkedList<Long>();
+  long lastOutput = 0;
+  long[] memory;
+  long currentMemPointer = 0;
   Instruction prevInstruction = null;
   Boolean didTerminate = false;
   Boolean waitningForInput = false;
-  HashMap<Integer, Integer> memoryMap = new HashMap<Integer, Integer>();
+  HashMap<Long, Long> memoryMap = new HashMap<Long, Long>();
 
-  public IntMachine(int[] machineInput, String instructionStr) {
-    for (Integer input : machineInput) {
+  public IntMachine(long[] machineInput, String instructionStr) {
+    for (long input : machineInput) {
       inputQueue.add(input);
     }
 
     String[] strArray = instructionStr.split(",");
-    this.memory = Arrays.stream(strArray).mapToInt(Integer::parseInt).toArray();
+    this.memory = Arrays.stream(strArray).mapToLong(Long::parseLong).toArray();
 
     for (int i = 0; i < this.memory.length; i++) {
-      memoryMap.put(i, this.memory[i]);
+      long index = i;
+      long value = this.memory[i];
+      memoryMap.put(index, value);
     }
   }
 
-  public int startMachine() {
+  public long startMachine() {
     Instruction instruction = getNextInstruction();
 
     while (instruction != null && !didTerminate && !waitningForInput) {
@@ -157,11 +159,11 @@ class IntMachine {
 
   void performInstruction(Instruction instruction) {
     if (instruction.opCode == OpCode.Add) {
-      int result = instruction.value1 + instruction.value2;
+      long result = instruction.value1 + instruction.value2;
       this.memoryMap.put(instruction.outputIndex, result);
 
     } else if (instruction.opCode == OpCode.Multiply) {
-      int result = instruction.value1 * instruction.value2;
+      long result = instruction.value1 * instruction.value2;
       this.memoryMap.put(instruction.outputIndex, result);
 
     } else if (instruction.opCode == OpCode.Input) {
@@ -169,7 +171,7 @@ class IntMachine {
         waitningForInput = true;
         return;
       }
-      int inputVal = this.inputQueue.pop();
+      long inputVal = this.inputQueue.pop();
       this.memoryMap.put(instruction.outputIndex, inputVal);
 
       if (Constants.showLogs) {
@@ -177,7 +179,7 @@ class IntMachine {
       }
 
     } else if (instruction.opCode == OpCode.Output) {
-      int output = instruction.outputIndex;
+      long output = instruction.outputIndex;
       if (!didTerminate) {
         lastOutput = output;
       }
@@ -192,22 +194,22 @@ class IntMachine {
       didTerminate = true;
 
     } else if (instruction.opCode == OpCode.JumpIfTrue) {
-      int nextMemPointer = instruction.outputIndex;
+      long nextMemPointer = instruction.outputIndex;
       this.currentMemPointer = nextMemPointer;
 
     } else if (instruction.opCode == OpCode.JumpIfFalse) {
-      int nextMemPointer = instruction.outputIndex;
+      long nextMemPointer = instruction.outputIndex;
       this.currentMemPointer = nextMemPointer;
 
     } else if (instruction.opCode == OpCode.LessThan) {
-      int valueToStore = instruction.value1;
-      int storeIndex = instruction.outputIndex;
+      long valueToStore = instruction.value1;
+      long storeIndex = instruction.outputIndex;
 
       this.memoryMap.put(storeIndex, valueToStore);
 
     } else if (instruction.opCode == OpCode.Equals) {
-      int valueToStore = instruction.value1;
-      int storeIndex = instruction.outputIndex;
+      long valueToStore = instruction.value1;
+      long storeIndex = instruction.outputIndex;
 
       this.memoryMap.put(storeIndex, valueToStore);
 
@@ -217,7 +219,7 @@ class IntMachine {
   }
 
   Instruction getNextInstruction() {
-    Integer currentMemVal = this.memoryMap.get(this.currentMemPointer);
+    Long currentMemVal = this.memoryMap.get(this.currentMemPointer);
     if (currentMemVal == null) {
       return null;
     }
@@ -226,52 +228,52 @@ class IntMachine {
       return null;
     }
 
-    int instructionStartCode = currentMemVal;
+    long instructionStartCode = currentMemVal;
 
-    int code = instructionStartCode % 100;
+    long code = instructionStartCode % 100;
 
     Instruction instruction = null;
 
     if (code == 1 || code == 2) {
-      int value1 = getParameterValue(1, instructionStartCode, false);
-      int value2 = getParameterValue(2, instructionStartCode, false);
-      int value3 = getParameterValue(3, instructionStartCode, true);
+      long value1 = getParameterValue(1, instructionStartCode, false);
+      long value2 = getParameterValue(2, instructionStartCode, false);
+      long value3 = getParameterValue(3, instructionStartCode, true);
 
       OpCode opCode = code == 1 ? OpCode.Add : OpCode.Multiply;
       instruction = new Instruction(opCode, value1, value2, value3, 4);
 
     } else if (code == 3) {
-      int output = getParameterValue(1, instructionStartCode, true);
+      long output = getParameterValue(1, instructionStartCode, true);
       instruction = new Instruction(OpCode.Input, 0, 0, output, 2);
 
     } else if (code == 4) {
-      int input = getParameterValue(1, instructionStartCode, false);
+      long input = getParameterValue(1, instructionStartCode, false);
       instruction = new Instruction(OpCode.Output, 0, 0, input, 2);
 
     } else if (code == 5) {
-      int doActionInt = getParameterValue(1, instructionStartCode, false);
-      int secondVal = getParameterValue(2, instructionStartCode, false);
-      int nextPointerIndex = doActionInt != 0 ? secondVal : this.currentMemPointer;
+      long doActionInt = getParameterValue(1, instructionStartCode, false);
+      long secondVal = getParameterValue(2, instructionStartCode, false);
+      long nextPointerIndex = doActionInt != 0 ? secondVal : this.currentMemPointer;
       instruction = new Instruction(OpCode.JumpIfTrue, 0, 0, nextPointerIndex, doActionInt != 0 ? 0 : 3);
 
     } else if (code == 6) {
-      int doActionInt = getParameterValue(1, instructionStartCode, false);
-      int secondVal = getParameterValue(2, instructionStartCode, false);
-      int nextPointerIndex = doActionInt == 0 ? secondVal : this.currentMemPointer;
+      long doActionInt = getParameterValue(1, instructionStartCode, false);
+      long secondVal = getParameterValue(2, instructionStartCode, false);
+      long nextPointerIndex = doActionInt == 0 ? secondVal : this.currentMemPointer;
       instruction = new Instruction(OpCode.JumpIfFalse, 0, 0, nextPointerIndex, doActionInt == 0 ? 0 : 3);
 
     } else if (code == 7) {
-      int compareInt1 = getParameterValue(1, instructionStartCode, false);
-      int compareInt2 = getParameterValue(2, instructionStartCode, false);
-      int resultIndex = getParameterValue(3, instructionStartCode, true);
-      int valueToStore = compareInt1 < compareInt2 ? 1 : 0;
+      long compareInt1 = getParameterValue(1, instructionStartCode, false);
+      long compareInt2 = getParameterValue(2, instructionStartCode, false);
+      long resultIndex = getParameterValue(3, instructionStartCode, true);
+      long valueToStore = compareInt1 < compareInt2 ? 1 : 0;
       instruction = new Instruction(OpCode.LessThan, valueToStore, 0, resultIndex, 4);
 
     } else if (code == 8) {
-      int compareInt1 = getParameterValue(1, instructionStartCode, false);
-      int compareInt2 = getParameterValue(2, instructionStartCode, false);
-      int resultIndex = getParameterValue(3, instructionStartCode, true);
-      int valueToStore = compareInt1 == compareInt2 ? 1 : 0;
+      long compareInt1 = getParameterValue(1, instructionStartCode, false);
+      long compareInt2 = getParameterValue(2, instructionStartCode, false);
+      long resultIndex = getParameterValue(3, instructionStartCode, true);
+      long valueToStore = compareInt1 == compareInt2 ? 1 : 0;
       instruction = new Instruction(OpCode.Equals, valueToStore, 0, resultIndex, 4);
 
     } else if (code == 99) {
@@ -286,11 +288,11 @@ class IntMachine {
     return instruction;
   }
 
-  int getParameterValue(int parameter, int instructionStartCode, Boolean isOutputParam) {
-    int value = 0;
+  long getParameterValue(int parameter, long instructionStartCode, Boolean isOutputParam) {
+    long value = 0;
 
-    int paramIndex = this.currentMemPointer + parameter;
-    Integer paramVal = this.memoryMap.get(paramIndex);
+    long paramIndex = this.currentMemPointer + parameter;
+    Long paramVal = this.memoryMap.get(paramIndex);
     if (paramVal != null) {
       value = paramVal;
     }
@@ -303,7 +305,7 @@ class IntMachine {
     return value;
   }
 
-  public static ParameterMode getParamMode(int instructionStartCode, int paramNbr) {
+  public static ParameterMode getParamMode(long instructionStartCode, int paramNbr) {
     int code = (int) (instructionStartCode / Math.pow(10, 1 + paramNbr) % 10);
     if (code == 0) {
       return ParameterMode.PositionMode;
@@ -320,12 +322,12 @@ class IntMachine {
 
 class Instruction {
   public OpCode opCode;
-  public int value1;
-  public int value2;
-  public int outputIndex;
-  public int instructionSize;
+  public long value1;
+  public long value2;
+  public long outputIndex;
+  public long instructionSize;
 
-  public Instruction(OpCode opCode, int value1, int value2, int outputIndex, int instructionSize) {
+  public Instruction(OpCode opCode, long value1, long value2, long outputIndex, int instructionSize) {
     this.opCode = opCode;
     this.value1 = value1;
     this.value2 = value2;
