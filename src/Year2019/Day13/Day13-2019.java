@@ -27,13 +27,30 @@ class Day_13 {
 class ArcadeGame {
   HashMap<Coord, String> drawingPanel = new HashMap<Coord, String>();
   IntMachine machine;
+  long score = 0;
+  int ballXPos = 0;
+  Integer paddlePos = null;
+  long joystickInput = 0;
 
   public ArcadeGame(String instructions) {
     long[] inputArr = {};
     IntMachine machine = new IntMachine(inputArr, instructions);
+
+    machine.memory[0] = 2;
+    machine.memoryMap.put(0l, 2l);
+
+    int gameSize = 1080;
+
     machine.stopsAfterOutput = true;
     Boolean didFinish = false;
     while (!didFinish) {
+      if (machine.waitningForInput) {
+        machine.inputQueue.add(joystickInput);
+        machine.waitningForInput = false;
+        // int joystickInputInt = (int) joystickInput;
+        // paddlePos += joystickInputInt;
+      }
+
       long xPos = machine.startMachine();
       machine.didReturnOutput = false;
       long yPos = machine.startMachine();
@@ -43,17 +60,42 @@ class ArcadeGame {
 
       int x = (int) xPos;
       int y = (int) yPos;
-      Coord inputCoord = new Coord(x, y);
-      String element = getElementForLong(elementType);
 
       didFinish = machine.didTerminate;
 
-      if (!didFinish) {
-        System.out.println("inputCoord: " + inputCoord + " Element: " + element);
-        paintCoord(inputCoord, element);
-      }
+      if (machine.hasNewOutputAfterInput()) {
+        // Check if Score
+        if (x == -1 && y == 0) {
+          score = elementType;
+        } else {
+          Coord inputCoord = new Coord(x, y);
+          String element = getElementForLong(elementType);
 
-      paint();
+          if (element == "*" && paddlePos != null) {
+            // Is ball movement. Update paddle
+            if (paddlePos < inputCoord.x) {
+              joystickInput = 1;
+            } else if (paddlePos > inputCoord.x) {
+              joystickInput = -1;
+            } else {
+              joystickInput = 0;
+            }
+            System.out.println(
+                "Updating *.. BallX: " + inputCoord.x + " paddleX: " + paddlePos + " JoystickInput: " + joystickInput);
+          } else if (element == "-") {
+            // Is paddle
+            paddlePos = inputCoord.x;
+          }
+
+          if (!didFinish) {
+            paintCoord(inputCoord, element);
+          }
+        }
+
+        // if (drawingPanel.size() == gameSize) {
+        // paint();
+        // }
+      }
     }
 
     paint();
@@ -118,6 +160,7 @@ class ArcadeGame {
       }
       System.out.print("\n");
     }
+    System.out.println("Score: " + score);
   }
 
   private void paintCoord(Coord coord, String element) {
@@ -136,6 +179,7 @@ class ArcadeGame {
 class IntMachine {
   LinkedList<Long> inputQueue = new LinkedList<Long>();
   long lastOutput = 0;
+  Long newOutputAfterInput = null;
   long[] memory;
   long currentMemPointer = 0;
   Instruction prevInstruction = null;
@@ -159,6 +203,10 @@ class IntMachine {
       long value = this.memory[i];
       memoryMap.put(index, value);
     }
+  }
+
+  public Boolean hasNewOutputAfterInput() {
+    return newOutputAfterInput != null;
   }
 
   public long startMachine() {
@@ -191,6 +239,7 @@ class IntMachine {
       this.memoryMap.put(instruction.outputIndex, result);
 
     } else if (instruction.opCode == OpCode.Input) {
+      newOutputAfterInput = null;
       if (inputQueue.size() == 0) {
         waitningForInput = true;
         return;
@@ -205,6 +254,7 @@ class IntMachine {
 
     } else if (instruction.opCode == OpCode.Output) {
       long output = instruction.outputIndex;
+      newOutputAfterInput = output;
       if (!didTerminate) {
         lastOutput = output;
         didReturnOutput = true;
