@@ -4,6 +4,13 @@
       "type": "java",
       "name": "CodeLens (Launch) - Day_1",
       "request": "launch",
+      "mainClass": "Year2020.Day02.Day_1",
+      "projectName": "AdventOfCode"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - Day_1",
+      "request": "launch",
       "mainClass": "Year2020.Day01.Day_1",
       "projectName": "AdventOfCode"
     },
