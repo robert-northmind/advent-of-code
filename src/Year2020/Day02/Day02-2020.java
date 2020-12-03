@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Day_1 {
+class Day_2 {
   public static void main(String[] args) {
     ArrayList<String> filePaths = new ArrayList<String>();
     // filePaths.add("src/Year2020/Day02/Input/test_1.txt");
