@@ -11,19 +11,30 @@ class Day_5 {
 
     MyFileReader fileReader = new MyFileReader(filePaths.get(0));
     ArrayList<String> lines = fileReader.getInputLines();
-    SeatingInfo seatingInfo = BoardingPassMachine.findHighestSeatId(lines);
+    ArrayList<BoardingPass> passes = BoardingPassMachine.getBoardingPasses(lines);
+
+    SeatingInfo seatingInfo = BoardingPassMachine.findHighestSeatId(passes);
     System.out.println("Highest seat Id: " + seatingInfo.highestSeatId);
 
-    BoardingPassMachine.findYourSeatId(lines);
+    int mySeatId = BoardingPassMachine.findYourSeatId(passes);
+    System.out.println("My seat is: " + mySeatId);
   }
 }
 
 class BoardingPassMachine {
-  public static SeatingInfo findHighestSeatId(ArrayList<String> inputStrings) {
-    int highestSeatId = Integer.MIN_VALUE;
-    int lowestSeatId = Integer.MAX_VALUE;
+  public static ArrayList<BoardingPass> getBoardingPasses(ArrayList<String> inputStrings) {
+    ArrayList<BoardingPass> passes = new ArrayList<BoardingPass>();
     for (String inputString : inputStrings) {
       BoardingPass pass = new BoardingPass(inputString);
+      passes.add(pass);
+    }
+    return passes;
+  }
+
+  public static SeatingInfo findHighestSeatId(ArrayList<BoardingPass> passes) {
+    int highestSeatId = Integer.MIN_VALUE;
+    int lowestSeatId = Integer.MAX_VALUE;
+    for (BoardingPass pass : passes) {
       if (pass.seatId > highestSeatId) {
         highestSeatId = pass.seatId;
       }
@@ -34,19 +45,22 @@ class BoardingPassMachine {
     return new SeatingInfo(lowestSeatId, highestSeatId);
   }
 
-  public static void findYourSeatId(ArrayList<String> inputStrings) {
-    SeatingInfo seatingInfo = findHighestSeatId(inputStrings);
+  public static int findYourSeatId(ArrayList<BoardingPass> passes) {
+    SeatingInfo seatingInfo = findHighestSeatId(passes);
     HashSet<Integer> freeSeats = new HashSet<Integer>();
     for (int i = seatingInfo.lowestSeatId; i < seatingInfo.highestSeatId; i++) {
       freeSeats.add(i);
     }
 
-    for (String inputString : inputStrings) {
-      BoardingPass pass = new BoardingPass(inputString);
+    for (BoardingPass pass : passes) {
       freeSeats.remove(pass.seatId);
     }
 
-    System.out.println("Still free seats: " + freeSeats);
+    ArrayList<Integer> freeSeatsList = new ArrayList<Integer>(freeSeats);
+    if (freeSeatsList.size() != 1) {
+      return -1;
+    }
+    return freeSeatsList.get(0);
   }
 }
 
