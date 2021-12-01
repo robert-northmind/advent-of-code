@@ -1,16 +1,28 @@
 import Foundation
+
 public struct AdventOfCode2021 {
-    public private(set) var text = "Hello, World!"
 
     public init() {}
-    
+
     public func run() {
-        let path = Bundle.module.path(forResource: "test", ofType: "txt")
-        let value = try! String(contentsOfFile: path!)
-        print("Hello11-- value: \(value)")
+        let days: [DailyChallengeRunnable] = [
+            Day1(withConfig: RunInputConfig(inputType: .testData, inputNumber: 1)),
+        ]
+
+        days.forEach { day in
+            day.runPartOne()
+            day.runPartTwo()
+        }
     }
 }
 
-public class MyString {
-    public init() {}
+class DailyChallengeRunnable {
+    let inputString: String
+
+    init(withConfig config: RunInputConfig) {
+        inputString = config.getInput(forDay: 1)
+    }
+
+    func runPartOne() {}
+    func runPartTwo() {}
 }
