@@ -6,20 +6,25 @@ public struct AdventOfCode2021 {
 
     public func run() {
         let days: [DailyChallengeRunnable] = [
-//            Day1(withConfig: RunInputConfig(type: .testData, day: 1, number: 1)),
-//            Day1(withConfig: RunInputConfig(type: .realData, day: 1, number: 1)),
+//            Day1(withConfig: InputConfig(type: .testData, number: 1)),
+//            Day1(withConfig: InputConfig(type: .realData, number: 1)),
             
-            Day2(withConfig: RunInputConfig(type: .testData, day: 2, number: 1)),
-            Day2(withConfig: RunInputConfig(type: .realData, day: 2, number: 1)),
+//            Day2(withConfig: InputConfig(type: .testData, number: 1)),
+//            Day2(withConfig: InputConfig(type: .realData, number: 1)),
+            
+            Day3(withConfig: InputConfig(type: .testData, number: 1)),
+//            Day3(withConfig: InputConfig(type: .realData, number: 1))
         ]
 
         days.forEach { day in
             runWithTimeMeasurement {
+                print("Day: \(day.dayNumber()), Part 1:")
                 day.runPartOne()
             }
-            runWithTimeMeasurement {
-                day.runPartTwo()
-            }
+//            runWithTimeMeasurement {
+//                print("Day: \(day.dayNumber()), Part 2:")
+//                day.runPartTwo()
+//            }
         }
     }
 
@@ -34,12 +39,17 @@ public struct AdventOfCode2021 {
 }
 
 class DailyChallengeRunnable {
-    let inputString: String
+    let config: InputConfig
 
-    init(withConfig config: RunInputConfig) {
-        inputString = config.getInput()
+    init(withConfig config: InputConfig) {
+        self.config = config
     }
 
+    var inputString: String {
+        config.getInput(forDay: dayNumber())
+    }
+
+    func dayNumber() -> Int { return 0 }
     func runPartOne() {}
     func runPartTwo() {}
 }

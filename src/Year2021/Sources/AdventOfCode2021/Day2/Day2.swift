@@ -8,13 +8,15 @@
 import Foundation
 
 class Day2: DailyChallengeRunnable {
+    override func dayNumber() -> Int { return 2 }
+
     override func runPartOne() {
         let commands = getCommands()
         let position = UboatPosition()
         commands.forEach { command in
             command.updatePosition(position)
         }
-        print("Horizontal: \(position.horizontal), deapth: \(position.deapth), multi: \(position.horizontal * position.deapth)")
+        print("Horizontal: \(position.horizontal), depth: \(position.depth), multi: \(position.horizontal * position.depth)")
     }
 
     override func runPartTwo() {
@@ -23,7 +25,7 @@ class Day2: DailyChallengeRunnable {
         commands.forEach { command in
             command.updatePositionWithAim(position)
         }
-        print("Horizontal: \(position.horizontal), deapth: \(position.deapth), multi: \(position.horizontal * position.deapth)")
+        print("Horizontal: \(position.horizontal), depth: \(position.depth), multi: \(position.horizontal * position.depth)")
     }
 
     private func getCommands() -> [UboatCommand] {
@@ -35,7 +37,7 @@ class Day2: DailyChallengeRunnable {
 
 private class UboatPosition {
     var horizontal = 0
-    var deapth = 0
+    var depth = 0
     var aim = 0
 }
 
@@ -55,9 +57,9 @@ private struct UboatCommand {
         case .forward:
             position.horizontal += distance
         case .down:
-            position.deapth += distance
+            position.depth += distance
         case .up:
-            position.deapth -= distance
+            position.depth -= distance
         }
     }
 
@@ -65,7 +67,7 @@ private struct UboatCommand {
         switch type {
         case .forward:
             position.horizontal += distance
-            position.deapth += position.aim * distance
+            position.depth += position.aim * distance
         case .down:
             position.aim += distance
         case .up:

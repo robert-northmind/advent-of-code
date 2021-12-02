@@ -8,38 +8,40 @@
 import Foundation
 
 class Day1: DailyChallengeRunnable {
+    override func dayNumber() -> Int { return 1 }
+
     override func runPartOne() {
-        let deapths = getDeapths()
-        let numberIncreases = computeIncreases(forDeapths: deapths)
-        print("Part 1: Number increases: \(numberIncreases)")
+        let depths = getDepths()
+        let numberIncreases = computeIncreases(forDepths: depths)
+        print("Number increases: \(numberIncreases)")
     }
     
     override func runPartTwo() {
-        let deapths = getDeapths()
-        var slidingWindowDeapths: [Int] = []
-        for index in 0..<deapths.count {
+        let depths = getDepths()
+        var slidingWindowDepths: [Int] = []
+        for index in 0..<depths.count {
             if index-2 >= 0 {
-                let slidingSum = deapths[index] + deapths[index-1] + deapths[index-2]
-                slidingWindowDeapths.append(slidingSum)
+                let slidingSum = depths[index] + depths[index-1] + depths[index-2]
+                slidingWindowDepths.append(slidingSum)
             }
         }
-        let numberIncreases = computeIncreases(forDeapths: slidingWindowDeapths)
-        print("Part 2: Number increases: \(numberIncreases)")
+        let numberIncreases = computeIncreases(forDepths: slidingWindowDepths)
+        print("Number increases: \(numberIncreases)")
     }
 
-    private func getDeapths() -> [Int] {
-        return inputString.components(separatedBy: "\n").compactMap { deapthString in
-            Int(deapthString)
+    private func getDepths() -> [Int] {
+        return inputString.components(separatedBy: "\n").compactMap { depthString in
+            Int(depthString)
         }
     }
 
-    private func computeIncreases(forDeapths deapths: [Int]) -> Int {
+    private func computeIncreases(forDepths depths: [Int]) -> Int {
         var numberIncreases = 0
-        var lastDeapth: Int?
-        deapths.forEach { deapth in
-            defer { lastDeapth = deapth }
-            guard let lastDeapth = lastDeapth else { return }
-            if deapth > lastDeapth {
+        var lastDepth: Int?
+        depths.forEach { depth in
+            defer { lastDepth = depth }
+            guard let lastDepth = lastDepth else { return }
+            if depth > lastDepth {
                 numberIncreases += 1
             }
         }

@@ -1,5 +1,5 @@
 //
-//  RunInputConfig.swift
+//  InputConfig.swift
 //  
 //
 //  Created by Robert Magnusson on 2021-12-01.
@@ -21,12 +21,11 @@ public enum InputDataType {
     }
 }
 
-public struct RunInputConfig {
+public struct InputConfig {
     let type: InputDataType
-    let day: Int
     let number: Int
 
-    func getInput() -> String {
+    func getInput(forDay day: Int) -> String {
         // Filenames have this pattern:
         // `Day-1_real-1.txt`
         let filename = "Day-\(day)_\(type.filePathName)-\(number)"
