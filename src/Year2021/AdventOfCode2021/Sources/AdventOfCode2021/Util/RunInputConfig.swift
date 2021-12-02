@@ -22,13 +22,14 @@ public enum InputDataType {
 }
 
 public struct RunInputConfig {
-    let inputType: InputDataType
-    let inputNumber: Int
+    let type: InputDataType
+    let day: Int
+    let number: Int
 
-    func getInput(forDay day: Int) -> String {
+    func getInput() -> String {
         // Filenames have this pattern:
         // `Day-1_real-1.txt`
-        let filename = "Day-\(day)_\(inputType.filePathName)-\(inputNumber)"
+        let filename = "Day-\(day)_\(type.filePathName)-\(number)"
         guard let path = Bundle.module.path(forResource: filename, ofType: "txt") else {
             return ""
         }
