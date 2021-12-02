@@ -31,10 +31,6 @@ let package = Package(
             name: "AdventOfCode2021",
             dependencies: [],
             resources: [.process("Resources")]
-        ),
-        .testTarget(
-            name: "AdventOfCode2021Tests",
-            dependencies: ["AdventOfCode2021"]
-        ),
+        )
     ]
 )
