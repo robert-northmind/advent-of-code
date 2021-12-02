@@ -9,49 +9,31 @@ import Foundation
 
 class Day1: DailyChallengeRunnable {
     override func runPartOne() {
-        let deapths = inputString.components(separatedBy: "\n").map { deapthString in
-            Int(deapthString)!
-        }
+        let deapths = getDeapths()
         let numberIncreases = computeIncreases(forDeapths: deapths)
         print("Part 1: Number increases: \(numberIncreases)")
     }
     
     override func runPartTwo() {
-        let deapths = inputString.components(separatedBy: "\n").map { deapthString in
-            Int(deapthString)!
-        }
+        let deapths = getDeapths()
         var slidingWindowDeapths: [Int] = []
-        var tmpSlidingWindowMap: [Int: Int] = [:]
-        let windowSize = 3
         for index in 0..<deapths.count {
-            // Remove any sliding sum which is completed
-            let slidingSumIndex = index - windowSize
-            if slidingSumIndex >= 0 {
-                let slidingSum = tmpSlidingWindowMap.removeValue(forKey: slidingSumIndex)
-                if let slidingSum = slidingSum {
-                    slidingWindowDeapths.append(slidingSum)
-                }
+            if index-2 >= 0 {
+                let slidingSum = deapths[index] + deapths[index-1] + deapths[index-2]
+                slidingWindowDeapths.append(slidingSum)
             }
-            
-            // Loop over all sliding windows which need still the sum
-            let newDeapth = deapths[index]
-            // Add new deapth to all existing entries in map
-            for (key, value) in tmpSlidingWindowMap {
-                tmpSlidingWindowMap[key] = value + newDeapth
-            }
-            // And then finally add the new index in map
-            tmpSlidingWindowMap[index] = newDeapth
-        }
-        // Add last sliding sum also
-        let lastSlidingSum = tmpSlidingWindowMap.removeValue(forKey: deapths.count - windowSize)
-        if let lastSlidingSum = lastSlidingSum {
-            slidingWindowDeapths.append(lastSlidingSum)
         }
         let numberIncreases = computeIncreases(forDeapths: slidingWindowDeapths)
         print("Part 2: Number increases: \(numberIncreases)")
     }
 
-    func computeIncreases(forDeapths deapths: [Int]) -> Int {
+    private func getDeapths() -> [Int] {
+        return inputString.components(separatedBy: "\n").compactMap { deapthString in
+            Int(deapthString)
+        }
+    }
+
+    private func computeIncreases(forDeapths deapths: [Int]) -> Int {
         var numberIncreases = 0
         var lastDeapth: Int?
         deapths.forEach { deapth in
