@@ -18,6 +18,72 @@ class Day3: DailyChallengeRunnable {
     }
     
     override func runPartTwo() {
+        let report = Report(inputString: inputString)
+        let oxygenRating = computeOxygen(forReport: report)
+        let scrubberRating = computeScrubber(forReport: report)
+        let lifeSupportRating = oxygenRating * scrubberRating
+        print("oxygenRating: \(oxygenRating), scrubberRating: \(scrubberRating), life support rating: \(lifeSupportRating)")
+    }
+
+    private func computeScrubber(forReport report: Report) -> UInt64 {
+        return getNumberMatching(bitComparisonRule: { bitCount in
+            return bitCount.zeros <= bitCount.ones ? .zero : .one
+        }, forReport: report)
+    }
+
+    private func computeOxygen(forReport report: Report) -> UInt64 {
+        return getNumberMatching(bitComparisonRule: { bitCount in
+            return bitCount.ones >= bitCount.zeros ? .one : .zero
+        }, forReport: report)
+    }
+
+    private func getBitCount(atIndex index: Int, inNumbers numbers: Set<UInt64>) -> (ones: Int, zeros: Int) {
+        var numberOnes = 0
+        numbers.forEach { number in
+            let shifted = number >> index
+            if (shifted & 1) == 1 {
+                numberOnes += 1
+            }
+        }
+        let numberZero = numbers.count - numberOnes
+        return (ones: numberOnes, zeros: numberZero)
+    }
+    
+    private func getNotNumbers(
+        atIndex index: Int,
+        inNumbers numbers: Set<UInt64>,
+        withBitValue bitValue: BitValue
+    ) -> Set<UInt64> {
+        var notMatchingNumber = Set<UInt64>()
+        let numberToMatch = bitValue == .one ? 1 : 0
+        numbers.forEach { number in
+            let shifted = number >> index
+            if (shifted & 1) != numberToMatch {
+                notMatchingNumber.insert(number)
+            }
+        }
+        return notMatchingNumber
+    }
+
+    private func getNumberMatching(
+        bitComparisonRule: ((ones: Int, zeros: Int)) -> BitValue,
+        forReport report: Report
+    ) -> UInt64 {
+        var matchingNumbers = Set(report.numbers)
+        for index in stride(from: report.lengthBinaryNumber-1, to: -1, by: -1) {
+            let bitCount = getBitCount(atIndex: index, inNumbers: matchingNumbers)
+            let bitToKeep = bitComparisonRule(bitCount)
+            let notMatchingNumbers = getNotNumbers(
+                atIndex: index,
+                inNumbers: matchingNumbers,
+                withBitValue: bitToKeep
+            )
+            matchingNumbers.subtract(notMatchingNumbers)
+            if matchingNumbers.count == 1 {
+                break
+            }
+        }
+        return matchingNumbers.first!
     }
 
     private func computePowerResult(forReport report: Report) -> PowerResult {
@@ -39,6 +105,11 @@ class Day3: DailyChallengeRunnable {
         let epsilonRate = UInt64(powerResult.epsilon, radix: 2)!
         return PowerResult(gammaRate: gammaRate, epsilonRate: epsilonRate)
     }
+}
+
+private enum BitValue {
+    case one
+    case zero
 }
 
 private struct PowerResult {

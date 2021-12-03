@@ -17,14 +17,14 @@ public struct AdventOfCode2021 {
         ]
 
         days.forEach { day in
-            runWithTimeMeasurement {
-                print("Day: \(day.dayNumber()), Part 1:")
-                day.runPartOne()
-            }
 //            runWithTimeMeasurement {
-//                print("Day: \(day.dayNumber()), Part 2:")
-//                day.runPartTwo()
+//                print("Day: \(day.dayNumber()), Part 1:")
+//                day.runPartOne()
 //            }
+            runWithTimeMeasurement {
+                print("Day: \(day.dayNumber()), Part 2:")
+                day.runPartTwo()
+            }
         }
     }
 
