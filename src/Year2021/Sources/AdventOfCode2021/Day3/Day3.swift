@@ -11,42 +11,53 @@ class Day3: DailyChallengeRunnable {
     override func dayNumber() -> Int { return 3 }
     
     override func runPartOne() {
-        let binaryStrings = inputString.components(separatedBy: "\n")
-        let lengthBinaryNumber = (binaryStrings.first ?? "").count
-        let reportNumbers = binaryStrings.map { binaryString in
-            return UInt64(binaryString, radix: 2)!
-        }
+        let report = Report(inputString: inputString)
+        let result = computePowerResult(forReport: report)
 
-        let totalNumbersInReport = reportNumbers.count
-        var onesIndexCount: [Int] = []
-        for _ in 0..<lengthBinaryNumber {
-            onesIndexCount.append(0)
-        }
+        print("gammaRate: \(result.gammaRate), epsilonRate: \(result.epsilonRate), power consumption: \(result.consumption)")
+    }
+    
+    override func runPartTwo() {
+    }
 
-        reportNumbers.forEach { reportNumber in
-            for index in 0..<lengthBinaryNumber {
+    private func computePowerResult(forReport report: Report) -> PowerResult {
+        var onesIndexCount = [Int](repeating: 0, count: report.lengthBinaryNumber)
+        report.numbers.forEach { reportNumber in
+            for index in 0 ..< report.lengthBinaryNumber {
                 let shifted = reportNumber >> index
                 if (shifted & 1) == 1 {
                     onesIndexCount[index] += 1
                 }
             }
         }
-
-        let gammaRateBinaryString = onesIndexCount.reduce("") { partialResult, numberOnes in
-            let nextBinStr = numberOnes > totalNumbersInReport/2 ? "1" : "0"
-            return nextBinStr + partialResult
+        let powerResult = onesIndexCount.reduce((gamma: "", epsilon: "")) { partialResult, numberOnes in
+            let nextGamma = numberOnes > report.numbers.count/2 ? "1" : "0"
+            let nextEpsilon = numberOnes < report.numbers.count/2 ? "1" : "0"
+            return (nextGamma + partialResult.gamma, nextEpsilon + partialResult.epsilon)
         }
-        let epsilonRateBinaryString = onesIndexCount.reduce("") { partialResult, numberOnes in
-            let nextBinStr = numberOnes < totalNumbersInReport/2 ? "1" : "0"
-            return nextBinStr + partialResult
-        }
-
-        let gammaRate = UInt64(gammaRateBinaryString, radix: 2)!
-        let epsilonRate = UInt64(epsilonRateBinaryString, radix: 2)!
-        
-        print("gammaRate: \(gammaRate), epsilonRate: \(epsilonRate), power consumption: \(gammaRate * epsilonRate)")
+        let gammaRate = UInt64(powerResult.gamma, radix: 2)!
+        let epsilonRate = UInt64(powerResult.epsilon, radix: 2)!
+        return PowerResult(gammaRate: gammaRate, epsilonRate: epsilonRate)
     }
-    
-    override func runPartTwo() {
+}
+
+private struct PowerResult {
+    let gammaRate: UInt64
+    let epsilonRate: UInt64
+    var consumption: UInt64 {
+        gammaRate * epsilonRate
+    }
+}
+
+private class Report {
+    let numbers: [UInt64]
+    let lengthBinaryNumber: Int
+
+    init(inputString: String) {
+        let binaryStrings = inputString.components(separatedBy: "\n")
+        lengthBinaryNumber = (binaryStrings.first ?? "").count
+        numbers = binaryStrings.map { binaryString in
+            return UInt64(binaryString, radix: 2)!
+        }
     }
 }
