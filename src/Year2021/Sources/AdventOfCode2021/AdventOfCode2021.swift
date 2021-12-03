@@ -13,7 +13,7 @@ public struct AdventOfCode2021 {
 //            Day2(withConfig: InputConfig(type: .realData, number: 1)),
             
             Day3(withConfig: InputConfig(type: .testData, number: 1)),
-//            Day3(withConfig: InputConfig(type: .realData, number: 1))
+            Day3(withConfig: InputConfig(type: .realData, number: 1))
         ]
 
         days.forEach { day in
