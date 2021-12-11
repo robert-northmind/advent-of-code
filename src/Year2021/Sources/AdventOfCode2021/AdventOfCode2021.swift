@@ -6,19 +6,19 @@ public struct AdventOfCode2021 {
 
     public func run() {
         let days: [DailyChallengeRunnable] = [
-            Day8(withConfig: InputConfig(type: .testData, number: 1)),
-//            Day8(withConfig: InputConfig(type: .realData, number: 1))
+            Day9(withConfig: InputConfig(type: .testData, number: 1)),
+            Day9(withConfig: InputConfig(type: .realData, number: 1))
         ]
 
         days.forEach { day in
-            runWithTimeMeasurement {
-                print("Day: \(day.dayNumber()), Part 1:")
-                day.runPartOne()
-            }
 //            runWithTimeMeasurement {
-//                print("Day: \(day.dayNumber()), Part 2:")
-//                day.runPartTwo()
+//                print("Day: \(day.dayNumber()), Part 1:")
+//                day.runPartOne()
 //            }
+            runWithTimeMeasurement {
+                print("Day: \(day.dayNumber()), Part 2:")
+                day.runPartTwo()
+            }
         }
     }
 
