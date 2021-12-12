@@ -6,8 +6,8 @@ public struct AdventOfCode2021 {
 
     public func run() {
         let days: [DailyChallengeRunnable] = [
-            Day10(withConfig: InputConfig(type: .testData, number: 1)),
-            Day10(withConfig: InputConfig(type: .realData, number: 1))
+//            Day11(withConfig: InputConfig(type: .testData, number: 1)),
+            Day11(withConfig: InputConfig(type: .realData, number: 1))
         ]
 
         days.forEach { day in
