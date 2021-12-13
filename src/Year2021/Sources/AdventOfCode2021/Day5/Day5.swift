@@ -75,12 +75,12 @@ class LineDiagram {
     }
 }
 
-struct Point: Hashable {
+private struct Point: Hashable {
     let x: Int
     let y: Int
 }
 
-struct Line {
+private struct Line {
     let startPoint: Point
     let endPoint: Point
 
