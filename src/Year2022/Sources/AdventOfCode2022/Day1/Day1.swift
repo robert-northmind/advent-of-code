@@ -11,40 +11,70 @@ class Day1: DailyChallengeRunnable {
     override func dayNumber() -> Int { return 1 }
 
     override func runPartOne() {
-        let depths = getDepths()
-        let numberIncreases = computeIncreases(forDepths: depths)
-        print("Number increases: \(numberIncreases)")
+        let calories = getCalories()
+        let maxCal = getMaxCal(cals: calories)
+        print("Elf with max calories has: \(maxCal)")
     }
     
     override func runPartTwo() {
-        let depths = getDepths()
-        var slidingWindowDepths: [Int] = []
-        for index in 0..<depths.count {
-            if index-2 >= 0 {
-                let slidingSum = depths[index] + depths[index-1] + depths[index-2]
-                slidingWindowDepths.append(slidingSum)
+        let calories = getCalories()
+        let maxCal = getMax3Cal(cals: calories)
+        print("Top 3 Elves have: \(maxCal)")
+    }
+    
+    private func getMax3Cal(cals: [Int]) -> Int {
+        var top3Elvs: [Int] = []
+        
+        cals.forEach { cal in
+            let minTop3 = top3Elvs.last
+            
+            if top3Elvs.count < 3 {
+                top3Elvs.append(cal)
+                top3Elvs.sort { val1, val2 in
+                    val1 > val2
+                }
+            } else if let minTop3 = minTop3, cal > minTop3 {
+                top3Elvs[2] = cal
+                top3Elvs.sort { val1, val2 in
+                    val1 > val2
+                }
             }
         }
-        let numberIncreases = computeIncreases(forDepths: slidingWindowDepths)
-        print("Number increases: \(numberIncreases)")
-    }
-
-    private func getDepths() -> [Int] {
-        return inputString.components(separatedBy: "\n").compactMap { depthString in
-            Int(depthString)
+        
+        print(top3Elvs)
+        return top3Elvs.reduce(0) { partialResult, nextTop3 in
+            partialResult + nextTop3
         }
     }
 
-    private func computeIncreases(forDepths depths: [Int]) -> Int {
-        var numberIncreases = 0
-        var lastDepth: Int?
-        depths.forEach { depth in
-            defer { lastDepth = depth }
-            guard let lastDepth = lastDepth else { return }
-            if depth > lastDepth {
-                numberIncreases += 1
+    private func getMaxCal(cals: [Int]) -> Int {
+        var maxCal = 0
+        cals.forEach { cal in
+            if cal > maxCal {
+                maxCal = cal
             }
         }
-        return numberIncreases
+        return maxCal
+    }
+    
+    private func getCalories() -> [Int] {
+        let calStringArray = inputString.components(separatedBy: "\n")
+        var calArray: [Int] = []
+        
+        var calSum: Int?
+        calStringArray.forEach { calString in
+            if let calInt = Int(calString) {
+                calSum = (calSum ?? 0) + calInt
+            } else if let theCalSum = calSum {
+                calArray.append(theCalSum)
+                calSum = nil
+            }
+        }
+        
+        if let calSum = calSum {
+            calArray.append(calSum)
+        }
+        
+        return calArray
     }
 }
