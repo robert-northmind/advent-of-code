@@ -50,7 +50,7 @@ struct Game: CustomStringConvertible {
     }
     
     func getPoints() -> Int {
-        return myShape.shapePoints() + myShape.gamePoints(against: opponentShape)
+        return myShape.points() + myShape.play(against: opponentShape).points()
     }
 
     var description: String {
@@ -63,7 +63,7 @@ enum HandShape {
     case paper
     case scissors
 
-    func shapePoints() -> Int {
+    func points() -> Int {
         switch self {
         case .rock:
             return 1
@@ -74,25 +74,35 @@ enum HandShape {
         }
     }
     
-    func gamePoints(against opponentShape: HandShape) -> Int {
+    func play(against opponentShape: HandShape) -> GameOutcome {
         if self == opponentShape {
-            return 3
+            return .draw
         }
-        if self == Self.shapeWhichLoosesMap[opponentShape]! {
-            return 0
+
+        switch self {
+        case .rock:
+            return opponentShape == .scissors ? .win : .loose
+        case .paper:
+            return opponentShape == .rock ? .win : .loose
+        case .scissors:
+            return opponentShape == .paper ? .win : .loose
         }
-        return 6
     }
     
-    func getShape(withGameOutcome gameOutcome: GameOutcome) -> HandShape {
-        switch gameOutcome {
-        case .win:
-            return Self.shapeWhichWinsMap[self]!
-        case .draw:
+    func getOpponentShape(basedOnGameOutcome gameOutcome: GameOutcome) -> HandShape {
+        if gameOutcome == .draw {
             return self
-        case .loose:
-            return Self.shapeWhichLoosesMap[self]!
         }
+        var optionalShapes: Set<HandShape> = [.rock, .paper, .scissors]
+        optionalShapes.remove(self)
+        
+        var opponentShape = self
+        optionalShapes.forEach { shape in
+            if play(against: shape) == gameOutcome {
+                opponentShape = shape
+            }
+        }
+        return opponentShape
     }
     
     static func shape(fromOpponentInput input: String) -> HandShape {
@@ -106,7 +116,7 @@ enum HandShape {
     static func shapes(fromOutcomeInput outcomeInput: String, opponentInput: String) -> (HandShape, HandShape) {
         let opponentShape = opponentInputMap[opponentInput]!
         let gameOutcome = gameOutcomeInputMap[outcomeInput]!
-        let myShape = opponentShape.getShape(withGameOutcome: gameOutcome)
+        let myShape = opponentShape.getOpponentShape(basedOnGameOutcome: gameOutcome.inverted())
         return (opponentShape, myShape)
     }
     
@@ -127,22 +137,32 @@ enum HandShape {
         "Y": .draw,
         "Z": .win,
     ]
-    
-    static private let shapeWhichLoosesMap: [HandShape: HandShape] = [
-        .rock: .scissors,
-        .paper: .rock,
-        .scissors: .paper,
-    ]
-    
-    static private let shapeWhichWinsMap: [HandShape: HandShape] = [
-        .rock: .paper,
-        .paper: .scissors,
-        .scissors: .rock,
-    ]
 }
 
 enum GameOutcome {
     case win
     case draw
     case loose
+
+    func points() -> Int {
+        switch self {
+        case .win:
+            return 6
+        case .draw:
+            return 3
+        case .loose:
+            return 0
+        }
+    }
+    
+    func inverted() -> GameOutcome {
+        switch self {
+        case .win:
+            return .loose
+        case .draw:
+            return .draw
+        case .loose:
+            return .win
+        }
+    }
 }
