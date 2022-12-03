@@ -26,24 +26,21 @@ class Day3: DailyChallengeRunnable {
         let rucksacksItems = inputString.components(separatedBy: "\n")
         var badges: [String] = []
         
-        var badgesSetList: [Set<String>] = []
-        for rucksackIndex in 0 ..< rucksacksItems.count {
-            let itemsArray = Array(rucksacksItems[rucksackIndex])
-            var badgeSet: Set<String> = []
-            for itemIndex in 0 ..< itemsArray.count {
-                badgeSet.insert(String(itemsArray[itemIndex]))
+        var badgeSet: Set<String.Element>?
+        var index = 0
+        rucksacksItems.forEach { rucksackItems in
+            let nextBadgeSet = Set(rucksackItems)
+            if let theBadgeSet = badgeSet {
+                badgeSet = theBadgeSet.intersection(nextBadgeSet)
+            } else {
+                badgeSet = nextBadgeSet
             }
             
-            // check when we reach the 3rd group. Then calculate and reset
-            if rucksackIndex % 3 == 2 {
-                badgesSetList.forEach { badgeSetInList in
-                    badgeSet = badgeSet.intersection(badgeSetInList)
-                }
-                badgesSetList = []
-                badges.append(Array(badgeSet).first!)
-            } else {
-                badgesSetList.append(badgeSet)
+            if index % 3 == 2 {
+                badges.append(String(Array(badgeSet!).first!))
+                badgeSet = nil
             }
+            index += 1
         }
         return badges
     }
@@ -71,20 +68,15 @@ class Day3: DailyChallengeRunnable {
         let rucksacksItems = inputString.components(separatedBy: "\n")
         var duplicateItems: [String] = []
         
-        for itemsString in rucksacksItems {
-            var firstCompartmentItems: Set<String.Element> = []
-            let itemsArray = Array(itemsString)
+        rucksacksItems.forEach { rucksackItems in
+            let startIndex = rucksackItems.startIndex
+            let endIndex = rucksackItems.endIndex
+            let midIndex = rucksackItems.index(startIndex, offsetBy: rucksackItems.count/2)
+            let compartmentOneSet = Set(rucksackItems[startIndex..<midIndex])
+            let compartmentTwoSet = Set(rucksackItems[midIndex..<endIndex])
             
-            for itemIndex in 0 ..< itemsArray.count/2 {
-                firstCompartmentItems.insert(itemsArray[itemIndex])
-            }
-            for itemIndex in itemsArray.count/2 ..< itemsArray.count {
-                let item = itemsArray[itemIndex]
-                if firstCompartmentItems.contains(item) {
-                    duplicateItems.append(String(item))
-                    break
-                }
-            }
+            let sharedItem = Array(compartmentOneSet.intersection(compartmentTwoSet)).first!
+            duplicateItems.append(String(sharedItem))
         }
         
         return duplicateItems
