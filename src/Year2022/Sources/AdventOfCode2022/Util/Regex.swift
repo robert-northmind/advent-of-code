@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RegexBuilder
 
 extension NSRegularExpression {
     convenience init(_ pattern: String) {
@@ -46,5 +47,31 @@ extension NSRegularExpression {
             }
         }
         return results
+    }
+    
+    private func inspirationCode() {
+        let myCustomRef = Reference(Substring.self)
+        let myRegEx = Regex {
+            OneOrMore(.digit)
+            OneOrMore(" ")
+            Capture(as: myCustomRef) {
+                One(.digit)
+            }
+            NegativeLookahead(.digit)
+        }
+        
+        let myString = """
+        this is a 123 1 string
+        and here comes one more 2 1 2.
+        and here comes one more 1 1.
+        """
+        
+        print(myString)
+        
+        let result = myString.matches(of: myRegEx)
+        result.forEach { match in
+            let theRes = match[myCustomRef]
+            print("a \(match.output), theRes: \(theRes)")
+        }
     }
 }
