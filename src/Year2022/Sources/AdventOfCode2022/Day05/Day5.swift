@@ -32,43 +32,12 @@ private struct CargoShip {
 
     init(withInputString inputString: String) {
         let inputList = inputString.components(separatedBy: "\n\n")
-        var crateStacksInput = inputList[0].components(separatedBy: "\n")
+        let crateStacksInput = inputList[0].components(separatedBy: "\n")
         let craneMovementsInput = inputList[1]
 
         // Create the cargo stacks
-        crateStacksInput.removeLast()
-        crateStacksInput.reverse()
-        
-        let stacksCount = (crateStacksInput[0].count + 1) / 4
-        crateStacksInput.forEach { crateStacksRowString in
-            let crateStacksRow = Array(crateStacksRowString)
-
-            for stackNbr in 0..<stacksCount {
-                let index = 4*stackNbr+1
-                let crate = crateStacksRow[index]
-                if crate != " " {
-                    var crateStack = crateStackMap[stackNbr+1] ?? []
-                    crateStack.append(String(crate))
-                    crateStackMap[stackNbr+1] = crateStack
-                }
-            }
-        }
-        
-        // Create the craneMovements
-        let amountRegex = Capture { OneOrMore(.digit) } transform: { Int($0)! }
-        let regex = Regex {
-            Anchor.startOfLine
-            "move "
-            amountRegex
-            " from "
-            amountRegex
-            " to "
-            amountRegex
-            Anchor.endOfLine
-        }
-        craneMovements = craneMovementsInput.matches(of: regex).map { match in
-            CraneMovement(amount: match.1, from: match.2, to: match.3)
-        }
+        setupCrateStacks(input: crateStacksInput)
+        setupCraneMovements(input: craneMovementsInput)
     }
 
     mutating func performCraneMovements() {
@@ -110,6 +79,44 @@ private struct CargoShip {
             topCrates.append(crateStackMap[stackNumber]!.last!)
         }
         return topCrates
+    }
+
+    private mutating func setupCrateStacks(input: [String]) {
+        var crateStacksInput = input
+        crateStacksInput.removeLast()
+        crateStacksInput.reverse()
+        
+        let stacksCount = (crateStacksInput[0].count + 1) / 4
+        crateStacksInput.forEach { crateStacksRowString in
+            let crateStacksRow = Array(crateStacksRowString)
+
+            for stackNbr in 0..<stacksCount {
+                let index = 4*stackNbr+1
+                let crate = crateStacksRow[index]
+                if crate != " " {
+                    var crateStack = crateStackMap[stackNbr+1] ?? []
+                    crateStack.append(String(crate))
+                    crateStackMap[stackNbr+1] = crateStack
+                }
+            }
+        }
+    }
+    
+    private mutating func setupCraneMovements(input: String) {
+        let amountRegex = Capture { OneOrMore(.digit) } transform: { Int($0)! }
+        let regex = Regex {
+            Anchor.startOfLine
+            "move "
+            amountRegex
+            " from "
+            amountRegex
+            " to "
+            amountRegex
+            Anchor.endOfLine
+        }
+        craneMovements = input.matches(of: regex).map { match in
+            CraneMovement(amount: match.1, from: match.2, to: match.3)
+        }
     }
 }
 
