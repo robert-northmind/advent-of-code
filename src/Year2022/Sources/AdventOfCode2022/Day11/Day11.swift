@@ -20,38 +20,40 @@ class Day11: DailyChallengeRunnable {
 
     override func runPartTwo() {
         let monkeyGame = MonkeyGame(fromInput: inputString, canReduceWorry: false)
-        let monkeyBusiness = monkeyGame.play(rounds: 1)
+        let monkeyBusiness = monkeyGame.play(rounds: 10000)
         print("monkeyBusiness: \(monkeyBusiness)")
     }
 }
 
 private class MonkeyGame {
-    private var monkeysMap: [Int: Monkey] = [:]
+    private var monkeysMap: [Int: Monkey]
     private let monkeysList: [Monkey]
+    private let commonDivisor: Int
     private let canReduceWorry: Bool
     
     init(fromInput inputString: String, canReduceWorry: Bool) {
+        var commonDivisor = 1
+        var monkeysMap: [Int: Monkey] = [:]
         let monkeys = inputString.matches(of: RegexHelper.regex).map { match in
-            Monkey(
+            let monkey = Monkey(
                 id: match.1,
                 staringItems: match.2,
                 operation: match.3,
                 test: Test(divisor: match.4, whenTrueMonkeyId: match.5, whenFalseMonkeyId: match.6)
             )
+            commonDivisor *= monkey.test.divisor
+            monkeysMap[monkey.id] = monkey
+            return monkey
         }
         self.canReduceWorry = canReduceWorry
-        monkeysList = monkeys
-        monkeys.forEach { monkey in
-            self.monkeysMap[monkey.id] = monkey
-        }
+        self.commonDivisor = commonDivisor
+        self.monkeysList = monkeys
+        self.monkeysMap = monkeysMap
     }
     
     func play(rounds: Int) -> Int {
         for _ in 0..<rounds {
             runTheMonkeyRound()
-        }
-        monkeysList.forEach { monkey in
-            print("id\(monkey.id) - \(monkey.numberInspections)")
         }
         let topMonkeys = monkeysList.sorted { lhs, rhs in
             lhs.numberInspections > rhs.numberInspections
@@ -61,7 +63,7 @@ private class MonkeyGame {
     
     private func runTheMonkeyRound() {
         monkeysList.forEach { monkey in
-            monkey.inspectItems(&monkeysMap, canReduceWorry: canReduceWorry)
+            monkey.inspectItems(&monkeysMap, commonDivisor: commonDivisor, canReduceWorry: canReduceWorry)
         }
     }
 }
@@ -80,29 +82,19 @@ private class Monkey: CustomStringConvertible {
         self.test = test
     }
 
-    func inspectItems(_ monkeysMap: inout [Int: Monkey], canReduceWorry: Bool) {
+    func inspectItems(_ monkeysMap: inout [Int: Monkey], commonDivisor: Int, canReduceWorry: Bool) {
         while items.count > 0 {
             numberInspections += 1
             var item = items.popFirst()!
             item = operation.getNewValue(for: item)
 
-//            if canReduceWorry {
-//                item = item / 3
-//            }
+            if canReduceWorry {
+                item = item / 3
+            }
+            item %= commonDivisor
 
             let monkeyThrowId = item % test.divisor == 0 ? test.whenTrueMonkeyId : test.whenFalseMonkeyId
-            let monkeyThrow = monkeysMap[monkeyThrowId]!
-            
-            if !canReduceWorry {
-                let preDivisor1 = monkeyThrow.operation.getNewValue(for: item) % monkeyThrow.test.divisor
-                
-                let preDivisor = item % monkeyThrow.test.divisor
-                item = monkeyThrow.test.divisor + preDivisor
-                
-                let postDivisor1 = monkeyThrow.operation.getNewValue(for: item) % monkeyThrow.test.divisor
-            }
-            
-            monkeyThrow.items.append(item)
+            monkeysMap[monkeyThrowId]!.items.append(item)
         }
     }
 

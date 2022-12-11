@@ -7,14 +7,14 @@ public struct AdventOfCode2022 {
     public func run() {
         let days: [DailyChallengeRunnable] = [
             Day11(withConfig: InputConfig(type: .testData, number: 1)),
-//            Day11(withConfig: InputConfig(type: .realData, number: 1))
+            Day11(withConfig: InputConfig(type: .realData, number: 1))
         ]
 
         days.forEach { day in
-//            runWithTimeMeasurement {
-//                print("Day: \(day.dayNumber()), Part 1:")
-//                day.runPartOne()
-//            }
+            runWithTimeMeasurement {
+                print("Day: \(day.dayNumber()), Part 1:")
+                day.runPartOne()
+            }
             runWithTimeMeasurement {
                 print("Day: \(day.dayNumber()), Part 2:")
                 day.runPartTwo()
