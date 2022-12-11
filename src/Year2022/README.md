@@ -8,4 +8,4 @@ Then there is a separate runner executable which runs the challenges and gives y
 
 To parse the puzzle input you can use regex.
 This package contains a good regex helper function.
-Here is a link to a good online page where you can try out different [regex](https://regex101.com)
+Here is a link to a good online page where you can try out different [regex](https://regex101.com) 
