@@ -12,24 +12,27 @@ class Day12: DailyChallengeRunnable {
     override func dayNumber() -> Int { return 12 }
 
     override func runPartOne() {
-        let graph = Graph(inputString: inputString)
+        let graph = Graph(inputString: inputString, checkAll: false)
         let minStepsToBestSignal = graph.getMinStepsToBestSignal()
         print("minStepsToBestSignal: \(minStepsToBestSignal)")
     }
 
     override func runPartTwo() {
+        let graph = Graph(inputString: inputString, checkAll: true)
+        let minStepsToBestSignal = graph.getMinStepsToBestSignal()
+        print("minStepsToBestSignal: \(minStepsToBestSignal)")
     }
 }
 
 private class Graph {
-    let startVertex: Vertex
+    let allStartingOptions: [Vertex]
     let bestSignalVertex: Vertex
     let vertexMap: [Position: Vertex]
 
-    init(inputString: String) {
+    init(inputString: String, checkAll: Bool) {
         var vertexMap: [Position: Vertex] = [:]
-        var startVertex: Vertex?
         var bestSignalVertex: Vertex?
+        var allStartingOptions: [Vertex] = []
 
         // Step 1: Create all vertices
         var y = 0
@@ -39,17 +42,19 @@ private class Graph {
                 let vertex = Vertex(name: "\(char)", position: Position(x: x, y: y))
                 vertexMap[vertex.position] = vertex
                 if vertex.name == "S" {
-                    startVertex = vertex
+                    allStartingOptions.append(vertex)
                 } else if vertex.name == "E" {
                     bestSignalVertex = vertex
+                } else if checkAll && vertex.name == "a" {
+                    allStartingOptions.append(vertex)
                 }
                 x += 1
             }
             y += 1
         }
         self.vertexMap = vertexMap
-        self.startVertex = startVertex!
         self.bestSignalVertex = bestSignalVertex!
+        self.allStartingOptions = allStartingOptions
         
         // Step 2: Hook up all edges
         vertexMap.values.forEach { vertex in
@@ -65,28 +70,40 @@ private class Graph {
     }
 
     func getMinStepsToBestSignal() -> Int {
-        startVertex.distance = 0
-        var verticesToVisit = Heap<Vertex>([startVertex])
-        
-        while verticesToVisit.count > 0 {
-            let currentVertex = verticesToVisit.popMin()!
-            guard currentVertex.visited == false else { continue }
-            currentVertex.visited = true
-            
-            if currentVertex.name == "E" {
-                return currentVertex.distance
-            }
+        var shortestPath = Int.max
 
-            for edgeVertex in currentVertex.edges {
-                let tmpDistance = currentVertex.distance + 1
-                if tmpDistance < edgeVertex.distance {
-                    edgeVertex.distance = tmpDistance
-                    edgeVertex.parent = currentVertex
+        for startVertex in allStartingOptions {
+            vertexMap.values.forEach { vertex in
+                vertex.distance = Int.max
+                vertex.parent = nil
+                vertex.visited = false
+            }
+            startVertex.distance = 0
+            var verticesToVisit = Heap<Vertex>([startVertex])
+            
+            while verticesToVisit.count > 0 {
+                let currentVertex = verticesToVisit.popMin()!
+                guard currentVertex.visited == false else { continue }
+                currentVertex.visited = true
+                
+                if currentVertex.name == "E" {
+                    if currentVertex.distance < shortestPath {
+                        shortestPath = currentVertex.distance
+                    }
+                    break
                 }
-                verticesToVisit.insert(edgeVertex)
+
+                for edgeVertex in currentVertex.edges {
+                    let tmpDistance = currentVertex.distance + 1
+                    if tmpDistance < edgeVertex.distance {
+                        edgeVertex.distance = tmpDistance
+                        edgeVertex.parent = currentVertex
+                    }
+                    verticesToVisit.insert(edgeVertex)
+                }
             }
         }
-        return -1
+        return shortestPath
     }
 }
 

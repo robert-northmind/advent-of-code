@@ -15,10 +15,10 @@ public struct AdventOfCode2022 {
                 print("Day: \(day.dayNumber()), Part 1:")
                 day.runPartOne()
             }
-//            runWithTimeMeasurement {
-//                print("Day: \(day.dayNumber()), Part 2:")
-//                day.runPartTwo()
-//            }
+            runWithTimeMeasurement {
+                print("Day: \(day.dayNumber()), Part 2:")
+                day.runPartTwo()
+            }
         }
     }
 
