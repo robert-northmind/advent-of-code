@@ -12,157 +12,148 @@ class Day12: DailyChallengeRunnable {
     override func dayNumber() -> Int { return 12 }
 
     override func runPartOne() {
-        let graph = Graph(inputString: inputString, checkAll: false)
-        let minStepsToBestSignal = graph.getMinStepsToBestSignal()
-        print("minStepsToBestSignal: \(minStepsToBestSignal)")
+        let graph = Graph(inputString: inputString, checkAllStarts: false)
+        let shortestPathToBestSignal = graph.getShortestPathToBestSignal()
+        print("shortestPathToBestSignal: \(shortestPathToBestSignal)")
     }
 
     override func runPartTwo() {
-        let graph = Graph(inputString: inputString, checkAll: true)
-        let minStepsToBestSignal = graph.getMinStepsToBestSignal()
-        print("minStepsToBestSignal: \(minStepsToBestSignal)")
+        let graph = Graph(inputString: inputString, checkAllStarts: true)
+        let shortestPathToBestSignal = graph.getShortestPathToBestSignal()
+        print("shortestPathToBestSignal: \(shortestPathToBestSignal)")
     }
 }
 
 private class Graph {
-    let allStartingOptions: [Vertex]
-    let bestSignalVertex: Vertex
-    let vertexMap: [Position: Vertex]
-
-    init(inputString: String, checkAll: Bool) {
-        var vertexMap: [Position: Vertex] = [:]
+    private let vertexMap: [Point: Vertex]
+    private let bestSignalVertex: Vertex
+    private let startingVertices: [Vertex]
+    
+    init(inputString: String, checkAllStarts: Bool) {
+        var vertexMap: [Point: Vertex] = [:]
         var bestSignalVertex: Vertex?
-        var allStartingOptions: [Vertex] = []
+        var startingVertices: [Vertex] = []
 
-        // Step 1: Create all vertices
         var y = 0
-        inputString.components(separatedBy: "\n").forEach { string in
+        inputString.components(separatedBy: "\n").forEach { graphInputRowString in
             var x = 0
-            Array(string).forEach { char in
-                let vertex = Vertex(name: "\(char)", position: Position(x: x, y: y))
-                vertexMap[vertex.position] = vertex
-                if vertex.name == "S" {
-                    allStartingOptions.append(vertex)
-                } else if vertex.name == "E" {
+            Array(graphInputRowString).forEach { graphInputColumnChar in
+                let point = Point(x: x, y: y)
+                let vertex = Vertex(name: "\(graphInputColumnChar)")
+                vertexMap[point] = vertex
+                
+                if vertex.name == "E" {
                     bestSignalVertex = vertex
-                } else if checkAll && vertex.name == "a" {
-                    allStartingOptions.append(vertex)
+                } else if vertex.name == "S" {
+                    startingVertices.append(vertex)
+                } else if checkAllStarts && vertex.name == "a" {
+                    startingVertices.append(vertex)
                 }
                 x += 1
             }
             y += 1
         }
-        self.vertexMap = vertexMap
-        self.bestSignalVertex = bestSignalVertex!
-        self.allStartingOptions = allStartingOptions
         
-        // Step 2: Hook up all edges
-        vertexMap.values.forEach { vertex in
+        vertexMap.forEach { point, vertex in
             Direction.allCases.forEach { direction in
-                let edgePos = vertex.position.getNextPos(forDirection: direction)
-                if let edgeVertex = vertexMap[edgePos] {
-                    if vertex.canGoTo(edgeVertex) {
-                        vertex.edges.append(edgeVertex)
-                    }
+                let edgePoint = point.getNextPointGoing(direction)
+                if let edgeVertex = vertexMap[edgePoint], vertex.canVisit(edgeVertex) {
+                    vertex.edges.append(edgeVertex)
                 }
             }
         }
+
+        self.vertexMap = vertexMap
+        self.bestSignalVertex = bestSignalVertex!
+        self.startingVertices = startingVertices
     }
-
-    func getMinStepsToBestSignal() -> Int {
+    
+    func getShortestPathToBestSignal() -> Int {
         var shortestPath = Int.max
-
-        for startVertex in allStartingOptions {
+        
+        startingVertices.forEach { startingVertex in
             vertexMap.values.forEach { vertex in
                 vertex.distance = Int.max
-                vertex.parent = nil
                 vertex.visited = false
             }
-            startVertex.distance = 0
-            var verticesToVisit = Heap<Vertex>([startVertex])
+            
+            startingVertex.distance = 0
+            var verticesToVisit = Deque<Vertex>([startingVertex])
             
             while verticesToVisit.count > 0 {
-                let currentVertex = verticesToVisit.popMin()!
+                let currentVertex = verticesToVisit.popFirst()!
                 guard currentVertex.visited == false else { continue }
+                
                 currentVertex.visited = true
                 
-                if currentVertex.name == "E" {
+                if currentVertex == bestSignalVertex {
                     if currentVertex.distance < shortestPath {
                         shortestPath = currentVertex.distance
                     }
                     break
                 }
-
-                for edgeVertex in currentVertex.edges {
+                
+                currentVertex.edges.forEach { edgeVertex in
                     let tmpDistance = currentVertex.distance + 1
                     if tmpDistance < edgeVertex.distance {
                         edgeVertex.distance = tmpDistance
-                        edgeVertex.parent = currentVertex
                     }
-                    verticesToVisit.insert(edgeVertex)
+                    verticesToVisit.append(edgeVertex)
                 }
             }
+            
         }
         return shortestPath
     }
 }
 
-private class Vertex: CustomStringConvertible, Comparable {
+private class Vertex: Comparable {
+    private let id = UUID()
     let name: String
-    let position: Position
-    var distance = Int.max
-    var parent: Vertex?
-    var visited = false
     var edges: [Vertex] = []
+    var distance = Int.max
+    var visited = false
     
-    init(name: String, position: Position) {
+    init(name: String) {
         self.name = name
-        self.position = position
     }
     
-    func canGoTo(_ otherVertex: Vertex) -> Bool {
-        let thisValue = getNameValueForComparison()
-        let otherValue = otherVertex.getNameValueForComparison()
-        return otherValue <= thisValue + 1
+    func canVisit(_ edgeVertex: Vertex) -> Bool {
+        let thisNameValue = getNameValue()
+        let otherNameValue = edgeVertex.getNameValue()
+        return otherNameValue <= thisNameValue+1
     }
     
-    private func getNameValueForComparison() -> Int {
-        let theName = (name == "S") ? "a" : ((name == "E") ? "z" : name)
+    static private let nameMapping: [String: String] = ["S": "a", "E": "z"]
+    private func getNameValue() -> Int {
+        let theName = Self.nameMapping[name] ?? name
         return Int(theName.unicodeScalars.first!.value)
-    }
-    
-    var description: String {
-        "(\(name), pos: \(position), edges: \(edges.count))"
     }
 
     static func < (lhs: Vertex, rhs: Vertex) -> Bool {
         lhs.distance < rhs.distance
     }
-
+    
     static func == (lhs: Vertex, rhs: Vertex) -> Bool {
-        lhs.position == rhs.position
+        lhs.id == rhs.id
     }
 }
 
-private struct Position: Hashable, CustomStringConvertible {
+private struct Point: Hashable {
     let x: Int
     let y: Int
     
-    func getNextPos(forDirection direction: Direction) -> Position {
+    func getNextPointGoing(_ direction: Direction) -> Point {
         switch direction {
         case .up:
-            return Position(x: x, y: y-1)
+            return Point(x: x, y: y-1)
         case .down:
-            return Position(x: x, y: y+1)
+            return Point(x: x, y: y+1)
         case .left:
-            return Position(x: x-1, y: y)
+            return Point(x: x-1, y: y)
         case .right:
-            return Position(x: x+1, y: y)
+            return Point(x: x+1, y: y)
         }
-    }
-    
-    var description: String {
-        "(\(x),\(y))"
     }
 }
 
