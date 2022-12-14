@@ -1,31 +1,18 @@
 <!--
-  Thanks for contributing!
-
-  Provide a description of your changes below and a general summary in the title
-
-  Please look at the following checklist to ensure that your PR can be accepted quickly:
+  Wohoo! 🥳 Thanks for contributing! Coding part is Done. Now lets get some reviews!
+  Please provide a description and fill in the checklist to ensure that your PR can be accepted quickly.
 -->
 
-## Status
-
-**READY/IN DEVELOPMENT/HOLD**
-
-## Breaking Changes
-
-YES | NO
-
 ## Description
-
-<!--- Describe your changes in detail -->
+<!--- Describe your change. Put something useful here. Not just `I changed stuff` -->
 
 ## Type of Change
+<!--- Mark all the boxes which apply -->
 
-<!--- Put an `x` in all the boxes that apply: -->
-
-- [ ] ✨ New feature (non-breaking change which adds functionality)
-- [ ] 🛠️ Bug fix (non-breaking change which fixes an issue)
-- [ ] ❌ Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] 🧹 Code refactor
-- [ ] ✅ Build configuration change
+- [ ] 🚀 New feature (non-breaking change)
+- [ ] 🛠️ Bug fix (non-breaking change)
+- [ ] ⚠️ Breaking change (feature or bug fix which breaks existing behaviors/APIs)
+- [ ] 🏗️ Code refactor
+- [ ] ⚙️ Build configuration change
 - [ ] 📝 Documentation
 - [ ] 🗑️ Chore
