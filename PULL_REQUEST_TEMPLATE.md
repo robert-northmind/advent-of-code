@@ -7,7 +7,7 @@
 <!--- Describe your change. Put something useful here. Not just `I changed stuff` -->
 
 ## Type of Change
-<!--- Mark all the boxes which apply -->
+<!--- Put an 'x' in all boxes which apply -->
 
 - [ ] 🚀 New feature (non-breaking change)
 - [ ] 🛠️ Bug fix (non-breaking change)
